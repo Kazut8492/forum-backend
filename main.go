@@ -1,11 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type TestComment struct {
@@ -34,6 +36,31 @@ func main() {
 	// 	"id": []string{},
 	// }
 	// fmt.Println(query.Encode())
+
+	db, err := sql.Open("sqlite3", "./example.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sql_table := `
+	CREATE TABLE IF NOT EXISTS post(
+		Id TEXT NOT NULL PRIMARY KEY,
+		Name TEXT,
+		Phone TEXT,
+		InsertedDatetime DATETIME
+	);
+	`
+	_, err = db.Exec(sql_table)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	testPosts = append(testPosts, TestPost{ID: 1, Title: "Title", Description: "Description"})
 	testPosts = append(testPosts, TestPost{ID: 2, Title: "Title", Description: "Description"})
 	testPosts = append(testPosts, TestPost{ID: 3, Title: "Title", Description: "Description"})
@@ -95,7 +122,7 @@ func writeHandler(w http.ResponseWriter, r *http.Request) {
 	newComment.ID = len(testPosts[postID-1].Comments) + 1
 	newComment.Title = r.Form["commentTitle"][0]
 	newComment.Description = r.Form["commentDescription"][0]
-	fmt.Println(newComment)
+	// fmt.Println(newComment)
 	testPosts[postID-1].Comments = append(testPosts[postID-1].Comments, &newComment)
 	http.Redirect(w, r, "/post?id="+postIDstr, http.StatusFound)
 }
