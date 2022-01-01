@@ -17,20 +17,20 @@
       </header>
       <main>
           <h1>{{.Title}}</h1>
-          <h2>{{.Description}}</h2>
-          <h3>PostID:{{.ID}}</h3>
+          <h2>{{.Content}}</h2>
+          <h3>PostID:{{.Id}}</h3>
           <h1>======================</h1>
           <form action="/write" method="POST">
               <input type="text" name="commentTitle">
               <input type="text" name="commentDescription">
-              <input type="text" name="id" value={{.ID}} style="display: none;">
+              <input type="text" name="id" value={{.Id}} style="display: none;">
               <input type="submit" value="Submit comment">
           </form>
           <h1>======================</h1>
           {{range .Comments}}
             <h1>{{.Title}}</h1>
-            <h2>{{.Description}}</h2>
-            <h3>PostID:{{.ID}}</h3>
+            <h2>{{.Content}}</h2>
+            <h3>CommentID:{{.Id}}</h3>
             <h1>--------------------</h1>
           {{end}}
       </main>

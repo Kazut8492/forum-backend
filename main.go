@@ -10,20 +10,21 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type TestComment struct {
-	ID          int
-	Title       string
-	Description string
+type Comment struct {
+	Id      int
+	PostId  int
+	Title   string
+	Content string
 }
 
-type TestPost struct {
-	ID          int
-	Title       string
-	Description string
-	Comments    []*TestComment
+type Post struct {
+	Id       int
+	Title    string
+	Content  string
+	Comments []Comment
 }
 
-var testPosts []TestPost
+// var testPosts []Post
 
 var tpl *template.Template
 
@@ -36,39 +37,26 @@ func main() {
 	// 	"id": []string{},
 	// }
 	// fmt.Println(query.Encode())
-
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 	defer db.Close()
-
 	err = db.Ping()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
-
-	sql_table := `
-	CREATE TABLE IF NOT EXISTS post(
-		Id TEXT NOT NULL PRIMARY KEY,
-		Name TEXT,
-		Phone TEXT,
-		InsertedDatetime DATETIME
-	);
-	`
-	_, err = db.Exec(sql_table)
-	if err != nil {
-		log.Fatal(err)
+	createTables(db)
+	testPosts := []Post{
+		{Id: 1, Title: "Title1", Content: "Content1"},
+		{Id: 2, Title: "Title2", Content: "Content2"},
+		{Id: 3, Title: "Title3", Content: "Content3"},
+		{Id: 4, Title: "Title4", Content: "Content4"},
+		{Id: 5, Title: "Title5", Content: "Content5"},
+		{Id: 6, Title: "Title6", Content: "Content6"},
+		{Id: 7, Title: "Title7", Content: "Content7"},
 	}
-
-	testPosts = append(testPosts, TestPost{ID: 1, Title: "Title", Description: "Description"})
-	testPosts = append(testPosts, TestPost{ID: 2, Title: "Title", Description: "Description"})
-	testPosts = append(testPosts, TestPost{ID: 3, Title: "Title", Description: "Description"})
-	testPosts = append(testPosts, TestPost{ID: 4, Title: "Title", Description: "Description"})
-	testPosts = append(testPosts, TestPost{ID: 5, Title: "Title", Description: "Description"})
-	testPosts = append(testPosts, TestPost{ID: 6, Title: "Title", Description: "Description"})
-	testPosts = append(testPosts, TestPost{ID: 7, Title: "Title", Description: "Description"})
-	testPosts[0].Comments = append(testPosts[0].Comments, &TestComment{ID: 1, Title: "CommentTitle", Description: "CommentDescription"})
+	insertPosts(db, testPosts)
 
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/post", postHandler)
@@ -78,29 +66,47 @@ func main() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("sqlite3", "./example.db")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer db.Close()
+	posts := readPosts(db)
+
 	if r.URL.Path != "/" {
 		w.WriteHeader(404)
 		return
 	}
-	if err := tpl.ExecuteTemplate(w, "index.html", testPosts); err != nil {
+	if err := tpl.ExecuteTemplate(w, "index.html", posts); err != nil {
 		w.WriteHeader(500)
 		return
 	}
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("sqlite3", "./example.db")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer db.Close()
+	posts := readPosts(db)
+
 	postIDstr := r.FormValue("id")
 	postID, err := strconv.Atoi(postIDstr)
-	// fmt.Println(postID)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
+
+	comments := readComments(db, postID)
+
+	certainPost := Post{posts[postID-1].Id, posts[postID-1].Title, posts[postID-1].Content, comments}
+
 	if r.URL.Path != "/post" {
 		w.WriteHeader(404)
 		return
 	}
-	if 1 <= postID && postID <= len(testPosts) {
-		if err := tpl.ExecuteTemplate(w, "post.html", testPosts[postID-1]); err != nil {
+	if 1 <= postID && postID <= len(posts) {
+		if err := tpl.ExecuteTemplate(w, "post.html", certainPost); err != nil {
 			w.WriteHeader(500)
 			return
 		}
@@ -112,17 +118,141 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 
 func writeHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	var newComment TestComment
 	postIDstr := r.FormValue("id")
 	postID, err := strconv.Atoi(postIDstr)
 	// fmt.Println(postID)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
-	newComment.ID = len(testPosts[postID-1].Comments) + 1
+
+	// if err != nil {
+	// 	log.Fatal(err.Error())
+	// }
+	// defer db.Close()
+	// comments := readComments(db, postID)
+
+	var newComment Comment
+	// newComment.Id = 0
+	newComment.PostId = postID
 	newComment.Title = r.Form["commentTitle"][0]
-	newComment.Description = r.Form["commentDescription"][0]
+	newComment.Content = r.Form["commentDescription"][0]
+	db, err := sql.Open("sqlite3", "./example.db")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer db.Close()
+	insertComments(db, newComment)
 	// fmt.Println(newComment)
-	testPosts[postID-1].Comments = append(testPosts[postID-1].Comments, &newComment)
+	// testPosts[postID-1].Comments = append(testPosts[postID-1].Comments, &newComment)
 	http.Redirect(w, r, "/post?id="+postIDstr, http.StatusFound)
+}
+
+func createTables(db *sql.DB) {
+	dbTables := []string{
+		`CREATE TABLE IF NOT EXISTS post (
+			"post_id"	INTEGER NOT NULL UNIQUE,
+			"title"		TEXT NOT NULL,
+			"content"	TEXT NOT NULL,
+			PRIMARY KEY("post_id" AUTOINCREMENT)
+		)`,
+
+		`CREATE TABLE IF NOT EXISTS comment (
+			"comment_id"	INTEGER NOT NULL UNIQUE,
+			"post_id"		INTEGER NOT NULL,
+			"title"			TEXT NOT NULL,
+			"content"		TEXT NOT NULL,
+			PRIMARY KEY("comment_id" AUTOINCREMENT),
+			FOREIGN KEY("post_id") REFERENCES "POST"("post_id")
+		)`,
+	}
+	for _, table := range dbTables {
+		statement, err := db.Prepare(table)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		defer statement.Close()
+		statement.Exec()
+	}
+}
+
+func insertPosts(db *sql.DB, posts []Post) {
+	db_storePosts := `
+		INSERT INTO post (
+			post_id,
+			title,
+			content
+		) VALUES (?, ?, ?)
+	`
+	statement, err := db.Prepare(db_storePosts)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer statement.Close()
+	for _, post := range posts {
+		statement.Exec(post.Id, post.Title, post.Content)
+	}
+}
+
+func readPosts(db *sql.DB) []Post {
+	db_readPosts := `
+		SELECT * FROM post
+		ORDER BY post_id
+	`
+
+	rows, err := db.Query(db_readPosts)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer rows.Close()
+
+	var result []Post
+	for rows.Next() {
+		post := Post{}
+		err = rows.Scan(&post.Id, &post.Title, &post.Content)
+		if err != nil {
+			panic(err.Error())
+		}
+		result = append(result, post)
+	}
+	return result
+}
+
+func insertComments(db *sql.DB, comment Comment) {
+	db_storeComments := `
+		INSERT INTO comment (
+			post_id,
+			title,
+			content
+		) VALUES (?, ?, ?)
+	`
+	statement, err := db.Prepare(db_storeComments)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer statement.Close()
+	statement.Exec(comment.PostId, comment.Title, comment.Content)
+}
+
+func readComments(db *sql.DB, postId int) []Comment {
+	db_readComments := `
+		SELECT * FROM comment WHERE post_id = ?
+		ORDER BY comment_id
+	`
+
+	rows, err := db.Query(db_readComments, postId)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer rows.Close()
+
+	var result []Comment
+	for rows.Next() {
+		comment := Comment{}
+		err = rows.Scan(&comment.Id, &comment.PostId, &comment.Title, &comment.Content)
+		if err != nil {
+			panic(err)
+		}
+		result = append(result, comment)
+	}
+	return result
 }
