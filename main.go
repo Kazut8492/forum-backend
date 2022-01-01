@@ -48,13 +48,13 @@ func main() {
 	}
 	createTables(db)
 	testPosts := []Post{
-		{Id: 1, Title: "Title1", Content: "Content1"},
-		{Id: 2, Title: "Title2", Content: "Content2"},
-		{Id: 3, Title: "Title3", Content: "Content3"},
-		{Id: 4, Title: "Title4", Content: "Content4"},
-		{Id: 5, Title: "Title5", Content: "Content5"},
-		{Id: 6, Title: "Title6", Content: "Content6"},
-		{Id: 7, Title: "Title7", Content: "Content7"},
+		{Title: "Title1", Content: "Content1"},
+		{Title: "Title2", Content: "Content2"},
+		{Title: "Title3", Content: "Content3"},
+		{Title: "Title4", Content: "Content4"},
+		{Title: "Title5", Content: "Content5"},
+		{Title: "Title6", Content: "Content6"},
+		{Title: "Title7", Content: "Content7"},
 	}
 	insertPosts(db, testPosts)
 
@@ -176,12 +176,12 @@ func createTables(db *sql.DB) {
 }
 
 func insertPosts(db *sql.DB, posts []Post) {
+	// comment_id shall be inserted automatically, also be careful to match VALUES
 	db_storePosts := `
 		INSERT INTO post (
-			post_id,
 			title,
 			content
-		) VALUES (?, ?, ?)
+		) VALUES (?, ?)
 	`
 	statement, err := db.Prepare(db_storePosts)
 	if err != nil {
@@ -189,7 +189,8 @@ func insertPosts(db *sql.DB, posts []Post) {
 	}
 	defer statement.Close()
 	for _, post := range posts {
-		statement.Exec(post.Id, post.Title, post.Content)
+		// number of variables have to be matched with INSERTed variables
+		statement.Exec(post.Title, post.Content)
 	}
 }
 
@@ -218,6 +219,7 @@ func readPosts(db *sql.DB) []Post {
 }
 
 func insertComments(db *sql.DB, comment Comment) {
+	// comment_id shall be inserted automatically, also be careful to match VALUES
 	db_storeComments := `
 		INSERT INTO comment (
 			post_id,
@@ -230,6 +232,7 @@ func insertComments(db *sql.DB, comment Comment) {
 		log.Fatal(err.Error())
 	}
 	defer statement.Close()
+	// number of variables have to be matched with INSERTed variables
 	statement.Exec(comment.PostId, comment.Title, comment.Content)
 }
 
