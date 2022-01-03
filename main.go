@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -9,6 +10,11 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 )
+
+type User struct {
+	Id   string
+	Pass string
+}
 
 type Comment struct {
 	Id      int
@@ -61,6 +67,10 @@ func main() {
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/post", postHandler)
 	http.HandleFunc("/write", writeHandler)
+	http.HandleFunc("/signup", signupHandler)
+	http.HandleFunc("/signup-submit", signupSubmitHandler)
+	http.HandleFunc("/login", loginHandler)
+	http.HandleFunc("/login-submit", loginSubmitHandler)
 	http.Handle("/templates/", http.StripPrefix("/templates/", http.FileServer(http.Dir("templates/"))))
 	http.ListenAndServe(":8888", nil)
 }
@@ -147,6 +157,66 @@ func writeHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/post?id="+postIDstr, http.StatusFound)
 }
 
+func signupHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/signup" {
+		w.WriteHeader(404)
+		return
+	}
+	if err := tpl.ExecuteTemplate(w, "signup.html", nil); err != nil {
+		w.WriteHeader(500)
+		return
+	}
+}
+
+func signupSubmitHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	userId := r.FormValue("userId")
+	userPass := r.FormValue("userPass")
+	newUser := User{}
+	newUser.Id = userId
+	newUser.Pass = userPass
+	db, err := sql.Open("sqlite3", "./example.db")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer db.Close()
+	insertUser(db, newUser)
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/login" {
+		w.WriteHeader(404)
+		return
+	}
+	if err := tpl.ExecuteTemplate(w, "login.html", nil); err != nil {
+		w.WriteHeader(500)
+		return
+	}
+}
+
+func loginSubmitHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	userId := r.FormValue("userId")
+	userPass := r.FormValue("userPass")
+	loginUser := User{}
+	loginUser.Id = userId
+	loginUser.Pass = userPass
+	db, err := sql.Open("sqlite3", "./example.db")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer db.Close()
+	userData := readUser(db, loginUser)
+	if (userData == User{} || userData.Pass != userPass) {
+		fmt.Println("log in failed")
+		http.Redirect(w, r, "/login", http.StatusFound)
+	} else {
+		fmt.Println("log in successed")
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
+}
+
 func createTables(db *sql.DB) {
 	dbTables := []string{
 		`CREATE TABLE IF NOT EXISTS post (
@@ -163,6 +233,12 @@ func createTables(db *sql.DB) {
 			"content"		TEXT NOT NULL,
 			PRIMARY KEY("comment_id" AUTOINCREMENT),
 			FOREIGN KEY("post_id") REFERENCES "POST"("post_id")
+		)`,
+
+		`CREATE TABLE IF NOT EXISTS user (
+			"user_id"		TEXT NOT NULL UNIQUE,
+			"user_pass"		TEXT NOT NULL,
+			PRIMARY KEY("user_id")
 		)`,
 	}
 	for _, table := range dbTables {
@@ -258,4 +334,41 @@ func readComments(db *sql.DB, postId int) []Comment {
 		result = append(result, comment)
 	}
 	return result
+}
+
+func insertUser(db *sql.DB, newUser User) {
+	db_storeUser := `
+		INSERT INTO user (
+			user_id,
+			user_pass
+		) VALUES (?, ?)
+	`
+	statement, err := db.Prepare(db_storeUser)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer statement.Close()
+	statement.Exec(newUser.Id, newUser.Pass)
+}
+
+func readUser(db *sql.DB, loginUser User) User {
+	db_readUser := `
+		SELECT * FROM user WHERE user_id = ?
+	`
+
+	row, err := db.Query(db_readUser, loginUser.Id)
+	if err != nil {
+		return User{}
+	}
+	defer row.Close()
+
+	// var result []Comment
+	user := User{}
+	for row.Next() {
+		err = row.Scan(&user.Id, &user.Pass)
+		if err != nil {
+			return User{}
+		}
+	}
+	return user
 }
