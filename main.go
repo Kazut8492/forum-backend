@@ -7,15 +7,25 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type Session struct {
+	userId     int
+	username   string
+	sessionId  int
+	expiration time.Time
+}
+
 type User struct {
-	Id   string
-	Pass string
+	User_ID  int
+	Username string
+	Pass     string
 }
 
 type Comment struct {
@@ -172,7 +182,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 
 func signupSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	userId := r.FormValue("userId")
+	username := r.FormValue("username")
 	userPass := r.FormValue("userPass")
 	encryptedUserPass, err := PasswordEncrypt(userPass)
 	if err != nil {
@@ -180,7 +190,7 @@ func signupSubmitHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(1)
 	}
 	newUser := User{}
-	newUser.Id = userId
+	newUser.Username = username
 	newUser.Pass = encryptedUserPass
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
@@ -204,11 +214,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 func loginSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	userId := r.FormValue("userId")
+	username := r.FormValue("username")
 	userPass := r.FormValue("userPass")
 	loginUser := User{}
-	loginUser.Id = userId
+	loginUser.Username = username
 	loginUser.Pass = userPass
+	// fmt.Printf("Input login user info: %v", loginUser)
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
 		log.Fatal(err.Error())
@@ -216,14 +227,15 @@ func loginSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	userData := readUser(db, loginUser)
 	if (userData == User{}) {
-		fmt.Println("log in failed")
+		fmt.Println("log in failed, empty data returned")
 		http.Redirect(w, r, "/login", http.StatusFound)
 	} else {
 		if err := CompareHashAndPassword(userData.Pass, userPass); err != nil {
-			fmt.Println("log in failed")
+			fmt.Println("log in failed, password not matched")
 			http.Redirect(w, r, "/login", http.StatusFound)
 		} else {
 			fmt.Println("log in successed")
+			initiateSession(w, r, db, userData)
 			http.Redirect(w, r, "/", http.StatusFound)
 		}
 	}
@@ -257,9 +269,20 @@ func createTables(db *sql.DB) {
 		)`,
 
 		`CREATE TABLE IF NOT EXISTS user (
-			"user_id"		TEXT NOT NULL UNIQUE,
+			"user_id"		INTEGER UNIQUE NOT NULL,
+			"username"		TEXT NOT NULL UNIQUE,
 			"user_pass"		TEXT NOT NULL,
-			PRIMARY KEY("user_id")
+			PRIMARY KEY("user_id" AUTOINCREMENT)
+		)`,
+
+		`CREATE TABLE IF NOT EXISTS session (
+			"session_id"	INTEGER NOT NULL UNIQUE,
+			"datetime"		DATETIME DEFAULT CURRENT_TIMESTAMP,
+			"user_id"		INTEGER NOT NULL,
+			"username"		TEXT NOT NULL UNIQUE,
+			"uuid"			TEXT NOT NULL,
+			PRIMARY KEY("session_id" AUTOINCREMENT),
+			FOREIGN KEY("user_id") REFERENCES "USER"("user_id")
 		)`,
 	}
 	for _, table := range dbTables {
@@ -360,7 +383,7 @@ func readComments(db *sql.DB, postId int) []Comment {
 func insertUser(db *sql.DB, newUser User) {
 	db_storeUser := `
 		INSERT INTO user (
-			user_id,
+			username,
 			user_pass
 		) VALUES (?, ?)
 	`
@@ -369,16 +392,17 @@ func insertUser(db *sql.DB, newUser User) {
 		log.Fatal(err.Error())
 	}
 	defer statement.Close()
-	statement.Exec(newUser.Id, newUser.Pass)
+	statement.Exec(newUser.Username, newUser.Pass)
 }
 
 func readUser(db *sql.DB, loginUser User) User {
 	db_readUser := `
-		SELECT * FROM user WHERE user_id = ?
+		SELECT * FROM user WHERE username = ?
 	`
 
-	row, err := db.Query(db_readUser, loginUser.Id)
+	row, err := db.Query(db_readUser, loginUser.Username)
 	if err != nil {
+		fmt.Println("Username not found in the database")
 		return User{}
 	}
 	defer row.Close()
@@ -386,10 +410,37 @@ func readUser(db *sql.DB, loginUser User) User {
 	// var result []Comment
 	user := User{}
 	for row.Next() {
-		err = row.Scan(&user.Id, &user.Pass)
+		err = row.Scan(&user.User_ID, &user.Username, &user.Pass)
 		if err != nil {
+			fmt.Println(err.Error())
 			return User{}
 		}
 	}
 	return user
+}
+
+func initiateSession(w http.ResponseWriter, r *http.Request, db *sql.DB, user User) {
+	uuid := uuid.New()
+	expiration := time.Now()
+	expiration = expiration.AddDate(1, 0, 0)
+	db.Exec("DELETE FROM session WHERE user_id = ?", user.User_ID)
+
+	cookie := http.Cookie{
+		Name:    "session",
+		Value:   uuid.String(),
+		Expires: expiration,
+		Secure:  true,
+		Path:    "/",
+	}
+	http.SetCookie(w, &cookie)
+
+	statement, err := db.Prepare("INSERT INTO session (user_id, username ,uuid, datetime) VALUES (?, ?, ?, ?)")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("ERROR: Failed to insert session")
+		log.Fatal(1)
+	}
+	defer statement.Close()
+	statement.Exec(user.User_ID, user.Username, uuid, expiration)
+	http.SetCookie(w, &cookie)
 }
