@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"golang.org/x/crypto/bcrypt"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -172,9 +174,14 @@ func signupSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	userId := r.FormValue("userId")
 	userPass := r.FormValue("userPass")
+	encryptedUserPass, err := PasswordEncrypt(userPass)
+	if err != nil {
+		fmt.Println("ERROR: Failed to encrypt passworrd")
+		log.Fatal(1)
+	}
 	newUser := User{}
 	newUser.Id = userId
-	newUser.Pass = userPass
+	newUser.Pass = encryptedUserPass
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
 		log.Fatal(err.Error())
@@ -208,13 +215,27 @@ func loginSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 	userData := readUser(db, loginUser)
-	if (userData == User{} || userData.Pass != userPass) {
+	if (userData == User{}) {
 		fmt.Println("log in failed")
 		http.Redirect(w, r, "/login", http.StatusFound)
 	} else {
-		fmt.Println("log in successed")
-		http.Redirect(w, r, "/", http.StatusFound)
+		if err := CompareHashAndPassword(userData.Pass, userPass); err != nil {
+			fmt.Println("log in failed")
+			http.Redirect(w, r, "/login", http.StatusFound)
+		} else {
+			fmt.Println("log in successed")
+			http.Redirect(w, r, "/", http.StatusFound)
+		}
 	}
+}
+
+func PasswordEncrypt(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(hash), err
+}
+
+func CompareHashAndPassword(hash, password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 
 func createTables(db *sql.DB) {
