@@ -1,4 +1,4 @@
-package handler
+package src
 
 import (
 	"html/template"
@@ -7,7 +7,6 @@ import (
 
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	tpl := template.Must(template.ParseGlob("templates/*.html"))
-
 	if r.URL.Path != "/signup" {
 		w.WriteHeader(404)
 		return

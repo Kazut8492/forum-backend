@@ -1,4 +1,4 @@
-package data
+package src
 
 // type Session struct {
 // 	userId     int
@@ -8,8 +8,9 @@ package data
 // }
 
 type User struct {
-	User_ID  int
+	ID       int
 	Username string
+	Email    string
 	Pass     string
 }
 

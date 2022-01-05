@@ -2,31 +2,31 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 
-	"KZ_forum/data"
-	"KZ_forum/handler"
+	"KZ_forum/src"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	// query := url.Values{
-	// 	"id": []string{},
-	// }
-	// fmt.Println(query.Encode())
+
+	// Create dummy data
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
-		log.Fatal(err.Error())
+		fmt.Println(err.Error())
+		log.Fatal(1)
 	}
 	defer db.Close()
 	err = db.Ping()
 	if err != nil {
-		log.Fatal(err.Error())
+		fmt.Println(err.Error())
+		log.Fatal(1)
 	}
-	data.CreateTables(db)
-	testPosts := []data.Post{
+	src.CreateTables(db)
+	testPosts := []src.Post{
 		{Title: "Title1", Content: "Content1"},
 		{Title: "Title2", Content: "Content2"},
 		{Title: "Title3", Content: "Content3"},
@@ -35,16 +35,17 @@ func main() {
 		{Title: "Title6", Content: "Content6"},
 		{Title: "Title7", Content: "Content7"},
 	}
-	data.InsertPosts(db, testPosts)
+	src.InsertPosts(db, testPosts)
 
-	http.HandleFunc("/", handler.IndexHandler)
-	http.HandleFunc("/post", handler.PostHandler)
-	http.HandleFunc("/write", handler.WriteHandler)
-	http.HandleFunc("/signup", handler.SignupHandler)
-	http.HandleFunc("/signup-submit", handler.SignupSubmitHandler)
-	http.HandleFunc("/login", handler.LoginHandler)
-	http.HandleFunc("/login-submit", handler.LoginSubmitHandler)
-	http.HandleFunc("/logout", handler.LogoutHandler)
+	// Server
+	http.HandleFunc("/", src.IndexHandler)
+	http.HandleFunc("/post", src.PostHandler)
+	http.HandleFunc("/write", src.WriteHandler)
+	http.HandleFunc("/signup", src.SignupHandler)
+	http.HandleFunc("/signup-submit", src.SignupSubmitHandler)
+	http.HandleFunc("/login", src.LoginHandler)
+	http.HandleFunc("/login-submit", src.LoginSubmitHandler)
+	http.HandleFunc("/logout", src.LogoutHandler)
 	http.Handle("/templates/", http.StripPrefix("/templates/", http.FileServer(http.Dir("templates/"))))
 	http.ListenAndServe(":8888", nil)
 }

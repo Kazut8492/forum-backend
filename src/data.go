@@ -1,4 +1,4 @@
-package data
+package src
 
 import (
 	"database/sql"
@@ -39,8 +39,9 @@ func CreateTables(db *sql.DB) {
 		)`,
 
 		`CREATE TABLE IF NOT EXISTS user (
-			"user_id"		INTEGER UNIQUE NOT NULL,
+			"user_id"		INTEGER NOT NULL UNIQUE,
 			"username"		TEXT NOT NULL UNIQUE,
+			"user_email"	TEXT NOT NULL UNIQUE,
 			"user_pass"		TEXT NOT NULL,
 			PRIMARY KEY("user_id" AUTOINCREMENT)
 		)`,
@@ -150,19 +151,20 @@ func ReadComments(db *sql.DB, postId int) []Comment {
 	return result
 }
 
-func InsertUser(db *sql.DB, newUser User) {
-	db_storeUser := `
+func InsertUser(db *sql.DB, user User) {
+	statement, err := db.Prepare(`
 		INSERT INTO user (
 			username,
+			user_email,
 			user_pass
-		) VALUES (?, ?)
-	`
-	statement, err := db.Prepare(db_storeUser)
+		) VALUES (?, ?, ?)
+	`)
 	if err != nil {
-		log.Fatal(err.Error())
+		fmt.Println(err.Error())
+		log.Fatal(1)
 	}
 	defer statement.Close()
-	statement.Exec(newUser.Username, newUser.Pass)
+	statement.Exec(user.Username, user.Email, user.Pass)
 }
 
 func ReadUser(db *sql.DB, loginUser User) User {
@@ -180,7 +182,7 @@ func ReadUser(db *sql.DB, loginUser User) User {
 	// var result []Comment
 	user := User{}
 	for row.Next() {
-		err = row.Scan(&user.User_ID, &user.Username, &user.Pass)
+		err = row.Scan(&user.ID, &user.Username, &user.Pass)
 		if err != nil {
 			fmt.Println(err.Error())
 			return User{}
@@ -193,7 +195,7 @@ func InitiateSession(w http.ResponseWriter, r *http.Request, db *sql.DB, user Us
 	uuid := uuid.New()
 	expiration := time.Now()
 	expiration = expiration.AddDate(1, 0, 0)
-	db.Exec("DELETE FROM session WHERE user_id = ?", user.User_ID)
+	db.Exec("DELETE FROM session WHERE user_id = ?", user.ID)
 
 	cookie := http.Cookie{
 		Name:    "session",
@@ -211,6 +213,6 @@ func InitiateSession(w http.ResponseWriter, r *http.Request, db *sql.DB, user Us
 		log.Fatal(1)
 	}
 	defer statement.Close()
-	statement.Exec(user.User_ID, user.Username, uuid, expiration)
+	statement.Exec(user.ID, user.Username, uuid, expiration)
 	http.SetCookie(w, &cookie)
 }
