@@ -46,6 +46,7 @@ func SignupSubmitHandler(w http.ResponseWriter, r *http.Request) {
 		user.Email = email
 		user.Pass = encryptedPass
 		InsertUser(db, user)
+		InitiateSession(w, r, db, user)
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }

@@ -167,29 +167,25 @@ func InsertUser(db *sql.DB, user User) {
 	statement.Exec(user.Username, user.Email, user.Pass)
 }
 
-func ReadUser(db *sql.DB, loginUser User) User {
-	db_readUser := `
-		SELECT * FROM user WHERE username = ?
-	`
+// func ReadUser(w http.ResponseWriter, db *sql.DB, loginUser User) User {
+// 	statement, _ := db.Query("SELECT * FROM user WHERE username = ?", loginUser.Username)
+// 	// if err != nil {
+// 	// 	w.WriteHeader(500)
+// 	// 	fmt.Println(err.Error())
+// 	// 	log.Fatal(1)
+// 	// }
+// 	defer statement.Close()
 
-	row, err := db.Query(db_readUser, loginUser.Username)
-	if err != nil {
-		fmt.Println("Username not found in the database")
-		return User{}
-	}
-	defer row.Close()
-
-	// var result []Comment
-	user := User{}
-	for row.Next() {
-		err = row.Scan(&user.ID, &user.Username, &user.Pass)
-		if err != nil {
-			fmt.Println(err.Error())
-			return User{}
-		}
-	}
-	return user
-}
+// 	user := User{}
+// 	for statement.Next() {
+// 		err := statement.Scan(&user.ID, &user.Username, &user.Email, &user.Pass)
+// 		if err != nil {
+// 			fmt.Println(err.Error())
+// 			return User{}
+// 		}
+// 	}
+// 	return user
+// }
 
 func InitiateSession(w http.ResponseWriter, r *http.Request, db *sql.DB, user User) {
 	uuid := uuid.New()
