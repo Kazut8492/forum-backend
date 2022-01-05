@@ -83,6 +83,7 @@ func main() {
 	http.HandleFunc("/signup-submit", signupSubmitHandler)
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/login-submit", loginSubmitHandler)
+	http.HandleFunc("/logout", logoutHandler)
 	http.Handle("/templates/", http.StripPrefix("/templates/", http.FileServer(http.Dir("templates/"))))
 	http.ListenAndServe(":8888", nil)
 }
@@ -239,6 +240,25 @@ func loginSubmitHandler(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/", http.StatusFound)
 		}
 	}
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("sqlite3", "./example.db")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer db.Close()
+	cookie, err := r.Cookie("session")
+	db.Exec("DELETE FROM session WHERE uuid = ?", cookie.Value)
+	cookie = &http.Cookie{
+		Name:     "session",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+	}
+	http.SetCookie(w, cookie)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func PasswordEncrypt(password string) (string, error) {
