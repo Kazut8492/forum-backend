@@ -40,7 +40,8 @@ func main() {
 	// Server
 	http.HandleFunc("/", src.IndexHandler)
 	http.HandleFunc("/post", src.PostHandler)
-	http.HandleFunc("/write", src.WriteHandler)
+	http.HandleFunc("/new-post", src.NewPostHandler)
+	http.HandleFunc("/new-comment", src.NewCommentHandler)
 	http.HandleFunc("/signup", src.SignupHandler)
 	http.HandleFunc("/signup-submit", src.SignupSubmitHandler)
 	http.HandleFunc("/login", src.LoginHandler)

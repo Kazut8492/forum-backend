@@ -68,13 +68,12 @@ func CreateTables(db *sql.DB) {
 
 func InsertPosts(db *sql.DB, posts []Post) {
 	// comment_id shall be inserted automatically, also be careful to match VALUES
-	db_storePosts := `
+	statement, err := db.Prepare(`
 		INSERT INTO post (
 			title,
 			content
 		) VALUES (?, ?)
-	`
-	statement, err := db.Prepare(db_storePosts)
+	`)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -83,6 +82,22 @@ func InsertPosts(db *sql.DB, posts []Post) {
 		// number of variables have to be matched with INSERTed variables
 		statement.Exec(post.Title, post.Content)
 	}
+}
+
+func InsertPost(db *sql.DB, post Post) {
+	// comment_id shall be inserted automatically, also be careful to match VALUES
+	statement, err := db.Prepare(`
+		INSERT INTO post (
+			title,
+			content
+		) VALUES (?, ?)
+	`)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer statement.Close()
+	// number of variables have to be matched with INSERTed variables
+	statement.Exec(post.Title, post.Content)
 }
 
 func ReadPosts(db *sql.DB) []Post {
@@ -100,7 +115,7 @@ func ReadPosts(db *sql.DB) []Post {
 	var result []Post
 	for rows.Next() {
 		post := Post{}
-		err = rows.Scan(&post.Id, &post.Title, &post.Content)
+		err = rows.Scan(&post.ID, &post.Title, &post.Content)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -111,14 +126,13 @@ func ReadPosts(db *sql.DB) []Post {
 
 func InsertComments(db *sql.DB, comment Comment) {
 	// comment_id shall be inserted automatically, also be careful to match VALUES
-	db_storeComments := `
+	statement, err := db.Prepare(`
 		INSERT INTO comment (
 			post_id,
 			title,
 			content
 		) VALUES (?, ?, ?)
-	`
-	statement, err := db.Prepare(db_storeComments)
+	`)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -142,7 +156,7 @@ func ReadComments(db *sql.DB, postId int) []Comment {
 	var result []Comment
 	for rows.Next() {
 		comment := Comment{}
-		err = rows.Scan(&comment.Id, &comment.PostId, &comment.Title, &comment.Content)
+		err = rows.Scan(&comment.ID, &comment.PostId, &comment.Title, &comment.Content)
 		if err != nil {
 			panic(err)
 		}

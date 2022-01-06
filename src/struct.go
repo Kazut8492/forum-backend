@@ -15,14 +15,14 @@ type User struct {
 }
 
 type Comment struct {
-	Id      int
+	ID      int
 	PostId  int
 	Title   string
 	Content string
 }
 
 type Post struct {
-	Id       int
+	ID       int
 	Title    string
 	Content  string
 	Comments []Comment

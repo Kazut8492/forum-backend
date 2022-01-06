@@ -19,15 +19,22 @@
           <p><a href="/logout">Logout</a></p>
       </header>
       <main>
-          {{range .}}
-            <h1>{{.Title}}</h1>
-            <h2>{{.Content}}</h2>
-            <form action="/post" method="GET">
-                <input type="text" name="id" value={{.Id}} style="display: none;">
-                <button>Check detail of this post</button>
-            </form>
-            <h1>======================</h1>
-          {{end}}
+        <h1>======================</h1>
+          <form action="/new-post" method="POST">
+              <input type="text" name="postTitle">
+              <input type="text" name="postContent">
+              <button>Submit post</button>
+          </form>
+        <h1>======================</h1>
+        {{range .}}
+          <h1>{{.Title}}</h1>
+          <h2>{{.Content}}</h2>
+          <form action="/post" method="GET">
+              <input type="text" name="id" value={{.ID}} style="display: none;">
+              <button>Check detail of this post</button>
+          </form>
+          <h1>======================</h1>
+        {{end}}
       </main>
       <footer>
       </footer>
