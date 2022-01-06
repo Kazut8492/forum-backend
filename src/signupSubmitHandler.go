@@ -5,7 +5,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"golang.org/x/crypto/bcrypt"
 )
+
+func PasswordEncrypt(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(hash), err
+}
 
 func SignupSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("sqlite3", "./example.db")

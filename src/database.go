@@ -8,17 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
-
-func PasswordEncrypt(password string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return string(hash), err
-}
-
-func CompareHashAndPassword(hash, password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-}
 
 func CreateTables(db *sql.DB) {
 	dbTables := []string{
@@ -49,11 +39,10 @@ func CreateTables(db *sql.DB) {
 		`CREATE TABLE IF NOT EXISTS session (
 			"session_id"	INTEGER NOT NULL UNIQUE,
 			"datetime"		DATETIME DEFAULT CURRENT_TIMESTAMP,
-			"user_id"		INTEGER NOT NULL,
 			"username"		TEXT NOT NULL UNIQUE,
 			"uuid"			TEXT NOT NULL,
 			PRIMARY KEY("session_id" AUTOINCREMENT),
-			FOREIGN KEY("user_id") REFERENCES "USER"("user_id")
+			FOREIGN KEY("username") REFERENCES "USER"("username")
 		)`,
 	}
 	for _, table := range dbTables {
@@ -216,13 +205,13 @@ func InitiateSession(w http.ResponseWriter, r *http.Request, db *sql.DB, user Us
 	}
 	http.SetCookie(w, &cookie)
 
-	statement, err := db.Prepare("INSERT INTO session (user_id, username ,uuid, datetime) VALUES (?, ?, ?, ?)")
+	statement, err := db.Prepare("INSERT INTO session (username ,uuid) VALUES (?, ?)")
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("ERROR: Failed to insert session")
 		log.Fatal(1)
 	}
 	defer statement.Close()
-	statement.Exec(user.ID, user.Username, uuid, expiration)
+	statement.Exec(user.Username, uuid)
 	http.SetCookie(w, &cookie)
 }
