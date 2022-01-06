@@ -30,10 +30,6 @@ func main() {
 		{Title: "Title1", Content: "Content1"},
 		{Title: "Title2", Content: "Content2"},
 		{Title: "Title3", Content: "Content3"},
-		{Title: "Title4", Content: "Content4"},
-		{Title: "Title5", Content: "Content5"},
-		{Title: "Title6", Content: "Content6"},
-		{Title: "Title7", Content: "Content7"},
 	}
 	src.InsertPosts(db, testPosts)
 
