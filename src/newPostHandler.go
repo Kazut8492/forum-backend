@@ -2,6 +2,7 @@ package src
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -16,6 +17,12 @@ func NewPostHandler(w http.ResponseWriter, r *http.Request) {
 	postTitle := r.FormValue("postTitle")
 	postContent := r.FormValue("postContent")
 	postCategory := r.Form["category"]
+	// At least one category has to be selected
+	if len(postCategory) == 0 {
+		fmt.Println("ERROR: At least one category has to be selected")
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
 	var post Post
 	post.Title = postTitle
 	post.Content = postContent
