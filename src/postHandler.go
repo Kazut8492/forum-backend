@@ -28,10 +28,11 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	comments := ReadComments(db, postID)
 
 	certainPost := Post{
-		ID:       posts[postID-1].ID,
-		Title:    posts[postID-1].Title,
-		Content:  posts[postID-1].Content,
-		Comments: comments,
+		ID:          posts[postID-1].ID,
+		Title:       posts[postID-1].Title,
+		Content:     posts[postID-1].Content,
+		CategoryArr: posts[postID-1].CategoryArr,
+		Comments:    comments,
 	}
 
 	if r.URL.Path != "/post" {

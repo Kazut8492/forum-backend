@@ -27,11 +27,14 @@ func main() {
 	}
 	src.CreateTables(db)
 	testPosts := []src.Post{
-		{Title: "Title1", Content: "Content1"},
-		{Title: "Title2", Content: "Content2"},
-		{Title: "Title3", Content: "Content3"},
+		{Title: "Title1", Content: "Content1", CategoryArr: []string{"science", "education"}},
+		{Title: "Title2", Content: "Content2", CategoryArr: []string{"education", "sports"}},
+		{Title: "Title3", Content: "Content3", CategoryArr: []string{"sports", "lifehacks"}},
 	}
-	src.InsertPosts(db, testPosts)
+
+	for _, post := range testPosts {
+		src.InsertPost(db, post)
+	}
 
 	// Server
 	http.HandleFunc("/", src.IndexHandler)

@@ -22,8 +22,10 @@ type Comment struct {
 }
 
 type Post struct {
-	ID       int
-	Title    string
-	Content  string
-	Comments []Comment
+	ID          int
+	Title       string
+	Content     string
+	Comments    []Comment
+	CategoryStr string
+	CategoryArr []string
 }

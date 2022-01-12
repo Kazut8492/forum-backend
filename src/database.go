@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,9 +14,10 @@ import (
 func CreateTables(db *sql.DB) {
 	dbTables := []string{
 		`CREATE TABLE IF NOT EXISTS post (
-			"post_id"	INTEGER NOT NULL UNIQUE,
-			"title"		TEXT NOT NULL,
-			"content"	TEXT NOT NULL,
+			"post_id"		INTEGER NOT NULL UNIQUE,
+			"title"			TEXT NOT NULL,
+			"content"		TEXT NOT NULL,
+			"category_str"	TEXT NOT NULL,
 			PRIMARY KEY("post_id" AUTOINCREMENT)
 		)`,
 
@@ -55,38 +57,24 @@ func CreateTables(db *sql.DB) {
 	}
 }
 
-func InsertPosts(db *sql.DB, posts []Post) {
-	// comment_id shall be inserted automatically, also be careful to match VALUES
-	statement, err := db.Prepare(`
-		INSERT INTO post (
-			title,
-			content
-		) VALUES (?, ?)
-	`)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	defer statement.Close()
-	for _, post := range posts {
-		// number of variables have to be matched with INSERTed variables
-		statement.Exec(post.Title, post.Content)
-	}
-}
-
 func InsertPost(db *sql.DB, post Post) {
 	// comment_id shall be inserted automatically, also be careful to match VALUES
+
+	categoryStr := strings.Join(post.CategoryArr, ",")
+
 	statement, err := db.Prepare(`
 		INSERT INTO post (
 			title,
-			content
-		) VALUES (?, ?)
+			content,
+			category_str
+		) VALUES (?, ?, ?)
 	`)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	defer statement.Close()
 	// number of variables have to be matched with INSERTed variables
-	statement.Exec(post.Title, post.Content)
+	statement.Exec(post.Title, post.Content, categoryStr)
 }
 
 func ReadPosts(db *sql.DB) []Post {
@@ -104,12 +92,16 @@ func ReadPosts(db *sql.DB) []Post {
 	var result []Post
 	for rows.Next() {
 		post := Post{}
-		err = rows.Scan(&post.ID, &post.Title, &post.Content)
+		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.CategoryStr)
 		if err != nil {
 			panic(err.Error())
 		}
 		result = append(result, post)
 	}
+	for index, post := range result {
+		result[index].CategoryArr = strings.Split(post.CategoryStr, ",")
+	}
+
 	return result
 }
 

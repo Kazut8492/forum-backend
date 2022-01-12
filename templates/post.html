@@ -19,6 +19,9 @@
           <h1>{{.Title}}</h1>
           <h2>{{.Content}}</h2>
           <h3>PostID:{{.ID}}</h3>
+          {{range .CategoryArr}}
+            <p>category: {{.}}</p>
+          {{end}}
           <h1>======================</h1>
           <form action="/new-comment" method="POST">
               <input type="text" name="commentTitle">
