@@ -17,7 +17,7 @@ func NewPostHandler(w http.ResponseWriter, r *http.Request) {
 	postTitle := r.FormValue("postTitle")
 	postContent := r.FormValue("postContent")
 	postCategory := r.Form["category"]
-	// At least one category has to be selected
+	// At least one category has to be selected. Otherwise, redirecting to the index page.
 	if len(postCategory) == 0 {
 		fmt.Println("ERROR: At least one category has to be selected")
 		http.Redirect(w, r, "/", http.StatusFound)
