@@ -38,6 +38,7 @@ func main() {
 
 	// Server
 	http.HandleFunc("/", src.IndexHandler)
+	http.HandleFunc("/filter", src.FilterHandler)
 	http.HandleFunc("/post", src.PostHandler)
 	http.HandleFunc("/new-post", src.NewPostHandler)
 	http.HandleFunc("/new-comment", src.NewCommentHandler)
