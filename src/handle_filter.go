@@ -55,13 +55,13 @@ func FilterHandler(w http.ResponseWriter, r *http.Request) {
 	case appliedFilter == "mine":
 		// Check if the user is logged-in. If cookie is empty, redirect to the index page.
 		cookie, err := r.Cookie("session")
-		if err != nil {
+		receivedUUID := cookie.Value
+		matchedUsername := getUsernameFromUUID(w, receivedUUID)
+		if err != nil || receivedUUID != matchedUsername {
 			fmt.Println("ERROR: Log-in needed to create a post")
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
-		receivedUUID := cookie.Value
-		matchedUsername := getUsernameFromUUID(w, receivedUUID)
 		for index, post := range fullPosts {
 			if post.CreatorUsrName == matchedUsername {
 				filteredPosts = append(filteredPosts, fullPosts[index])

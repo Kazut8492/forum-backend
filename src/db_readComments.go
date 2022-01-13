@@ -17,7 +17,7 @@ func ReadComments(db *sql.DB, postId int) []Comment {
 	var result []Comment
 	for rows.Next() {
 		comment := Comment{}
-		err = rows.Scan(&comment.ID, &comment.PostId, &comment.Title, &comment.Content, &comment.CreatorUsrName)
+		err = rows.Scan(&comment.ID, &comment.PostId, &comment.Title, &comment.Content, &comment.CreatorUsrName, &comment.Like, &comment.DisLike)
 		if err != nil {
 			panic(err)
 		}

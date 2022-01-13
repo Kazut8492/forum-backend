@@ -13,7 +13,9 @@ func CreateTables(db *sql.DB) {
 			"content"			TEXT NOT NULL,
 			"category_str"		TEXT NOT NULL,
 			"creator_username"	TEXT NOT NULL,
-			PRIMARY KEY("post_id" AUTOINCREMENT)
+			"like"				INTEGER NOT NULL,
+			"dislike"			INTEGER NOT NULL,
+			PRIMARY KEY("post_id" AUTOINCREMENT),
 			FOREIGN KEY("creator_username") REFERENCES "USER"("username")
 		)`,
 
@@ -23,8 +25,10 @@ func CreateTables(db *sql.DB) {
 			"title"				TEXT NOT NULL,
 			"content"			TEXT NOT NULL,
 			"creator_username"	TEXT NOT NULL,
+			"like"				INTEGER NOT NULL,
+			"dislike"			INTEGER NOT NULL,
 			PRIMARY KEY("comment_id" AUTOINCREMENT),
-			FOREIGN KEY("post_id") REFERENCES "POST"("post_id")
+			FOREIGN KEY("post_id") REFERENCES "POST"("post_id"),
 			FOREIGN KEY("creator_username") REFERENCES "USER"("username")
 		)`,
 

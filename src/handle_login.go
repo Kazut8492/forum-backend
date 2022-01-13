@@ -7,7 +7,6 @@ import (
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	tpl := template.Must(template.ParseGlob("templates/*.html"))
-
 	if r.URL.Path != "/login" {
 		w.WriteHeader(404)
 		return

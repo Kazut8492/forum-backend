@@ -20,7 +20,7 @@ func ReadPosts(db *sql.DB) []Post {
 	var result []Post
 	for rows.Next() {
 		post := Post{}
-		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.CategoryStr, &post.CreatorUsrName)
+		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.CategoryStr, &post.CreatorUsrName, &post.Like, &post.DisLike)
 		if err != nil {
 			panic(err.Error())
 		}

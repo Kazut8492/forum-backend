@@ -9,7 +9,7 @@ import (
 )
 
 // Jump to a certain post selected on the index page
-func PostHandler(w http.ResponseWriter, r *http.Request) {
+func PostPageHandler(w http.ResponseWriter, r *http.Request) {
 	tpl := template.Must(template.ParseGlob("templates/*.html"))
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
@@ -19,6 +19,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	posts := ReadPosts(db)
 
 	postIDstr := r.FormValue("id")
+	// postIDstr := r.URL.Query().Get("id") this could work ????
 	postID, err := strconv.Atoi(postIDstr)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -31,6 +32,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		Title:       posts[postID-1].Title,
 		Content:     posts[postID-1].Content,
 		CategoryArr: posts[postID-1].CategoryArr,
+		Like:        posts[postID-1].Like,
+		DisLike:     posts[postID-1].DisLike,
 		Comments:    comments,
 	}
 

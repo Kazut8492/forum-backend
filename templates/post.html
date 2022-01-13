@@ -18,11 +18,23 @@
       <main>
           <h1>{{.Title}}</h1>
           <h2>{{.Content}}</h2>
-          <h3>PostID:{{.ID}}</h3>
+          <h3>PostID: {{.ID}}</h3>
           <h3>Username: {{.CreatorUsrName}}</h3>
           {{range .CategoryArr}}
-            <p>category: {{.}}</p>
+            <p>Category: {{.}}</p>
           {{end}}
+          <p>Like: {{.Like}}</p>
+          <form action="/like-post" method="POST">
+            <input type="text" name="from" value="post" style="display: none;">
+            <input type="text" name="id" value={{.ID}} style="display: none;">
+            <button>Like post</button>
+          </form>
+          <p>Dislike: {{.DisLike}}</p>
+          <form action="/dislike-post" method="POST">
+            <input type="text" name="from" value="post" style="display: none;">
+            <input type="text" name="id" value={{.ID}} style="display: none;">
+            <button>Dislike post</button>
+          </form>
           <h1>======================</h1>
           <form action="/new-comment" method="POST">
               <input type="text" name="commentTitle" required>
@@ -36,6 +48,18 @@
             <h2>{{.Content}}</h2>
             <h3>CommentID: {{.ID}}</h3>
             <h3>Username: {{.CreatorUsrName}}</h3>
+            <p>Like: {{.Like}}</p>
+            <form action="/like-comment" method="POST">
+              <input type="text" name="postid" value={{.PostId}} style="display: none;">
+              <input type="text" name="commentid" value={{.ID}} style="display: none;">
+              <button>Like post</button>
+            </form>
+            <p>Dislike: {{.DisLike}}</p>
+            <form action="/dislike-comment" method="POST">
+              <input type="text" name="postid" value={{.PostId}} style="display: none;">
+              <input type="text" name="commentid" value={{.ID}} style="display: none;">
+              <button>Dislike post</button>
+            </form>
             <h1>--------------------</h1>
           {{end}}
       </main>

@@ -31,19 +31,19 @@ func NewCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the user is logged-in. If cookie is empty, redirect to the post page.
 	cookie, err := r.Cookie("session")
-	if err != nil {
+	receivedUUID := cookie.Value
+	matchedUsername := getUsernameFromUUID(w, receivedUUID)
+	if err != nil || receivedUUID != matchedUsername {
 		fmt.Println("ERROR: Log-in needed to create a comment")
 		http.Redirect(w, r, "/post?id="+postIDstr, http.StatusFound)
 		return
 	}
-	receivedUUID := cookie.Value
-	matchedUsername := getUsernameFromUUID(w, receivedUUID)
 
 	var newComment Comment
 	newComment.PostId = postID
 	newComment.Title = r.FormValue("commentTitle")
 	newComment.Content = r.FormValue("commentDescription")
 	newComment.CreatorUsrName = matchedUsername
-	InsertComments(db, newComment)
+	InsertComment(db, newComment)
 	http.Redirect(w, r, "/post?id="+postIDstr, http.StatusFound)
 }

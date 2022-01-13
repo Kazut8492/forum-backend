@@ -22,13 +22,13 @@ func NewPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the user is logged-in. If cookie is empty, redirect to the index page.
 	cookie, err := r.Cookie("session")
-	if err != nil {
+	receivedUUID := cookie.Value
+	matchedUsername := getUsernameFromUUID(w, receivedUUID)
+	if err != nil || receivedUUID != matchedUsername {
 		fmt.Println("ERROR: Log-in needed to create a post")
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	receivedUUID := cookie.Value
-	matchedUsername := getUsernameFromUUID(w, receivedUUID)
 
 	r.ParseForm()
 	postTitle := r.FormValue("postTitle")
