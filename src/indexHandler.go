@@ -14,7 +14,6 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
 		return
 	}
-
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
 		w.WriteHeader(500)

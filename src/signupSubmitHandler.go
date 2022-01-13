@@ -15,6 +15,10 @@ func PasswordEncrypt(password string) (string, error) {
 }
 
 func SignupSubmitHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/signup-submit" {
+		w.WriteHeader(404)
+		return
+	}
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
 		w.WriteHeader(500)
@@ -22,11 +26,6 @@ func SignupSubmitHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(1)
 	}
 	defer db.Close()
-
-	if r.URL.Path != "/signup-submit" {
-		w.WriteHeader(404)
-		return
-	}
 
 	r.ParseForm()
 	username := r.FormValue("username")
@@ -45,7 +44,7 @@ func SignupSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	db.QueryRow("SELECT username FROM user WHERE username = ?", username).Scan(&matchedUsername)
 	if email == matchedEmail || username == matchedUsername {
 		//WORK IN PROGRESS
-		fmt.Println("Same email or username found in the database")
+		fmt.Println("ERROR: Same email or username found in the database")
 		http.Redirect(w, r, "/signup", http.StatusFound)
 	} else {
 		user := User{}

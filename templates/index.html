@@ -21,13 +21,14 @@
       <main>
         <h1>Filter posts</h1>
         <form action="/filter" method="POST">
-          <p>At least one category has to be selected</p>
-          <p>
-            <input type="checkbox" name="filter" value="science">science
-            <input type="checkbox" name="filter" value="education">education
-            <input type="checkbox" name="filter" value="sports">sports
-            <input type="checkbox" name="filter" value="lifehacks">lifehacks
-          </p>
+          <select name="filter">
+            <option value="">Show all</option>
+            <option value="science">Science</option>
+            <option value="education">Education</option>
+            <option value="sports">Sports</option>
+            <option value="lifehacks">Lifehacks</option>
+            <option value="mine">My posts</option>
+          </select>
           <button>Apply filter</button>
         </form>
         <h1>======================</h1>
@@ -48,6 +49,7 @@
         {{range .}}
           <h1>{{.Title}}</h1>
           <h2>{{.Content}}</h2>
+          <h3>Username: {{.CreatorUsrName}}</h3>
           {{range .CategoryArr}}
             <p>category: {{.}}</p>
           {{end}}

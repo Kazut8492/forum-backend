@@ -15,13 +15,7 @@ func FilterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	r.ParseForm()
-	appliedFilter := r.Form["filter"]
-	// At least one category has to be selected. Otherwise, redirecting to the index page.
-	if len(appliedFilter) == 0 {
-		fmt.Println("ERROR: At least one category has to be selected")
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
+	appliedFilter := r.FormValue("filter")
 
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
@@ -31,15 +25,50 @@ func FilterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 	fullPosts := ReadPosts(db)
-
 	filteredPosts := []Post{}
-	for index, post := range fullPosts {
-		for _, postCategory := range post.CategoryArr {
-			if contains(appliedFilter, postCategory) {
+
+	switch {
+	case appliedFilter == "science":
+		for index, post := range fullPosts {
+			if contains(post.CategoryArr, appliedFilter) {
 				filteredPosts = append(filteredPosts, fullPosts[index])
-				break
 			}
 		}
+	case appliedFilter == "education":
+		for index, post := range fullPosts {
+			if contains(post.CategoryArr, appliedFilter) {
+				filteredPosts = append(filteredPosts, fullPosts[index])
+			}
+		}
+	case appliedFilter == "sports":
+		for index, post := range fullPosts {
+			if contains(post.CategoryArr, appliedFilter) {
+				filteredPosts = append(filteredPosts, fullPosts[index])
+			}
+		}
+	case appliedFilter == "lifehacks":
+		for index, post := range fullPosts {
+			if contains(post.CategoryArr, appliedFilter) {
+				filteredPosts = append(filteredPosts, fullPosts[index])
+			}
+		}
+	case appliedFilter == "mine":
+		// Check if the user is logged-in. If cookie is empty, redirect to the index page.
+		cookie, err := r.Cookie("session")
+		if err != nil {
+			fmt.Println("ERROR: Log-in needed to create a post")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+		receivedUUID := cookie.Value
+		matchedUsername := getUsernameFromUUID(w, receivedUUID)
+		for index, post := range fullPosts {
+			if post.CreatorUsrName == matchedUsername {
+				filteredPosts = append(filteredPosts, fullPosts[index])
+			}
+		}
+	default:
+		filteredPosts = fullPosts
 	}
 
 	if err := tpl.ExecuteTemplate(w, "index.html", filteredPosts); err != nil {

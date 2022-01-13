@@ -14,20 +14,24 @@ import (
 func CreateTables(db *sql.DB) {
 	dbTables := []string{
 		`CREATE TABLE IF NOT EXISTS post (
-			"post_id"		INTEGER NOT NULL UNIQUE,
-			"title"			TEXT NOT NULL,
-			"content"		TEXT NOT NULL,
-			"category_str"	TEXT NOT NULL,
+			"post_id"			INTEGER NOT NULL UNIQUE,
+			"title"				TEXT NOT NULL,
+			"content"			TEXT NOT NULL,
+			"category_str"		TEXT NOT NULL,
+			"creator_username"	TEXT NOT NULL,
 			PRIMARY KEY("post_id" AUTOINCREMENT)
+			FOREIGN KEY("creator_username") REFERENCES "USER"("username")
 		)`,
 
 		`CREATE TABLE IF NOT EXISTS comment (
-			"comment_id"	INTEGER NOT NULL UNIQUE,
-			"post_id"		INTEGER NOT NULL,
-			"title"			TEXT NOT NULL,
-			"content"		TEXT NOT NULL,
+			"comment_id"		INTEGER NOT NULL UNIQUE,
+			"post_id"			INTEGER NOT NULL,
+			"title"				TEXT NOT NULL,
+			"content"			TEXT NOT NULL,
+			"creator_username"	TEXT NOT NULL,
 			PRIMARY KEY("comment_id" AUTOINCREMENT),
 			FOREIGN KEY("post_id") REFERENCES "POST"("post_id")
+			FOREIGN KEY("creator_username") REFERENCES "USER"("username")
 		)`,
 
 		`CREATE TABLE IF NOT EXISTS user (
@@ -66,15 +70,16 @@ func InsertPost(db *sql.DB, post Post) {
 		INSERT INTO post (
 			title,
 			content,
-			category_str
-		) VALUES (?, ?, ?)
+			category_str,
+			creator_username
+		) VALUES (?, ?, ?, ?)
 	`)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	defer statement.Close()
 	// number of variables have to be matched with INSERTed variables
-	statement.Exec(post.Title, post.Content, categoryStr)
+	statement.Exec(post.Title, post.Content, categoryStr, post.CreatorUsrName)
 }
 
 func ReadPosts(db *sql.DB) []Post {
@@ -92,7 +97,7 @@ func ReadPosts(db *sql.DB) []Post {
 	var result []Post
 	for rows.Next() {
 		post := Post{}
-		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.CategoryStr)
+		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.CategoryStr, &post.CreatorUsrName)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -111,15 +116,16 @@ func InsertComments(db *sql.DB, comment Comment) {
 		INSERT INTO comment (
 			post_id,
 			title,
-			content
-		) VALUES (?, ?, ?)
+			content,
+			creator_username
+		) VALUES (?, ?, ?, ?)
 	`)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	defer statement.Close()
 	// number of variables have to be matched with INSERTed variables
-	statement.Exec(comment.PostId, comment.Title, comment.Content)
+	statement.Exec(comment.PostId, comment.Title, comment.Content, comment.CreatorUsrName)
 }
 
 func ReadComments(db *sql.DB, postId int) []Comment {
@@ -137,7 +143,7 @@ func ReadComments(db *sql.DB, postId int) []Comment {
 	var result []Comment
 	for rows.Next() {
 		comment := Comment{}
-		err = rows.Scan(&comment.ID, &comment.PostId, &comment.Title, &comment.Content)
+		err = rows.Scan(&comment.ID, &comment.PostId, &comment.Title, &comment.Content, &comment.CreatorUsrName)
 		if err != nil {
 			panic(err)
 		}
@@ -162,6 +168,7 @@ func InsertUser(db *sql.DB, user User) {
 	statement.Exec(user.Username, user.Email, user.Pass)
 }
 
+// Commented out becasue there is one-liner way to do it. Pls refer to Login/Signup Submit Handlers
 // func ReadUser(w http.ResponseWriter, db *sql.DB, loginUser User) User {
 // 	statement, _ := db.Query("SELECT * FROM user WHERE username = ?", loginUser.Username)
 // 	// if err != nil {
@@ -181,6 +188,20 @@ func InsertUser(db *sql.DB, user User) {
 // 	}
 // 	return user
 // }
+
+func getUsernameFromUUID(w http.ResponseWriter, receivedUUID string) string {
+	db, err := sql.Open("sqlite3", "./example.db")
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Println(err.Error())
+		log.Fatal(1)
+	}
+	defer db.Close()
+
+	var matchedUsername string
+	db.QueryRow("SELECT username FROM session WHERE uuid = ?", receivedUUID).Scan(&matchedUsername)
+	return matchedUsername
+}
 
 func InitiateSession(w http.ResponseWriter, r *http.Request, db *sql.DB, user User) {
 	uuid := uuid.New()

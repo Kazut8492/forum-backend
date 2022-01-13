@@ -2,12 +2,25 @@ package src
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 )
 
 func NewCommentHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/new-comment" {
+		w.WriteHeader(404)
+		return
+	}
+	db, err := sql.Open("sqlite3", "./example.db")
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Println(err.Error())
+		log.Fatal(1)
+	}
+	defer db.Close()
+
 	r.ParseForm()
 	postIDstr := r.FormValue("id")
 	postID, err := strconv.Atoi(postIDstr)
@@ -16,24 +29,21 @@ func NewCommentHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err.Error())
 	}
 
-	// if err != nil {
-	// 	log.Fatal(err.Error())
-	// }
-	// defer db.Close()
-	// comments := readComments(db, postID)
+	// Check if the user is logged-in. If cookie is empty, redirect to the post page.
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		fmt.Println("ERROR: Log-in needed to create a comment")
+		http.Redirect(w, r, "/post?id="+postIDstr, http.StatusFound)
+		return
+	}
+	receivedUUID := cookie.Value
+	matchedUsername := getUsernameFromUUID(w, receivedUUID)
 
 	var newComment Comment
-	// newComment.Id = 0
 	newComment.PostId = postID
-	newComment.Title = r.Form["commentTitle"][0]
-	newComment.Content = r.Form["commentDescription"][0]
-	db, err := sql.Open("sqlite3", "./example.db")
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	defer db.Close()
+	newComment.Title = r.FormValue("commentTitle")
+	newComment.Content = r.FormValue("commentDescription")
+	newComment.CreatorUsrName = matchedUsername
 	InsertComments(db, newComment)
-	// fmt.Println(newComment)
-	// testPosts[postID-1].Comments = append(testPosts[postID-1].Comments, &newComment)
 	http.Redirect(w, r, "/post?id="+postIDstr, http.StatusFound)
 }

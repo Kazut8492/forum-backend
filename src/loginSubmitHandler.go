@@ -34,7 +34,7 @@ func LoginSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	db.QueryRow("SELECT username FROM user WHERE username = ?", username).Scan(&matchedUsername)
 	if matchedUsername == "" {
 		//WORK IN PROGRESS
-		fmt.Println("log in failed, username not found in the database")
+		fmt.Println("ERROR: log in failed, username not found in the database")
 		http.Redirect(w, r, "/login", http.StatusFound)
 		// return
 	} else {
@@ -57,7 +57,7 @@ func LoginSubmitHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if err := CompareHashAndPassword(user.Pass, password); err != nil {
 			//WORK IN PROGRESS
-			fmt.Println("log in failed, password not matched")
+			fmt.Println("ERROR: log in failed, password not matched")
 			http.Redirect(w, r, "/login", http.StatusFound)
 		} else {
 			fmt.Println("log in successed")

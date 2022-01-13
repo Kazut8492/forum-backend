@@ -11,7 +11,6 @@ import (
 // Jump to a certain post selected on the index page
 func PostHandler(w http.ResponseWriter, r *http.Request) {
 	tpl := template.Must(template.ParseGlob("templates/*.html"))
-
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
 		log.Fatal(err.Error())

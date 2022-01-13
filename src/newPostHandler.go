@@ -12,6 +12,23 @@ func NewPostHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
 		return
 	}
+	db, err := sql.Open("sqlite3", "./example.db")
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Println(err.Error())
+		log.Fatal(1)
+	}
+	defer db.Close()
+
+	// Check if the user is logged-in. If cookie is empty, redirect to the index page.
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		fmt.Println("ERROR: Log-in needed to create a post")
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+	receivedUUID := cookie.Value
+	matchedUsername := getUsernameFromUUID(w, receivedUUID)
 
 	r.ParseForm()
 	postTitle := r.FormValue("postTitle")
@@ -27,11 +44,7 @@ func NewPostHandler(w http.ResponseWriter, r *http.Request) {
 	post.Title = postTitle
 	post.Content = postContent
 	post.CategoryArr = postCategory
-	db, err := sql.Open("sqlite3", "./example.db")
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	defer db.Close()
+	post.CreatorUsrName = matchedUsername
 	InsertPost(db, post)
 	http.Redirect(w, r, "/", http.StatusFound)
 }

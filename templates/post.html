@@ -19,6 +19,7 @@
           <h1>{{.Title}}</h1>
           <h2>{{.Content}}</h2>
           <h3>PostID:{{.ID}}</h3>
+          <h3>Username: {{.CreatorUsrName}}</h3>
           {{range .CategoryArr}}
             <p>category: {{.}}</p>
           {{end}}
@@ -33,7 +34,8 @@
           {{range .Comments}}
             <h1>{{.Title}}</h1>
             <h2>{{.Content}}</h2>
-            <h3>CommentID:{{.ID}}</h3>
+            <h3>CommentID: {{.ID}}</h3>
+            <h3>Username: {{.CreatorUsrName}}</h3>
             <h1>--------------------</h1>
           {{end}}
       </main>

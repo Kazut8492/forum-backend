@@ -15,17 +15,19 @@ type User struct {
 }
 
 type Comment struct {
-	ID      int
-	PostId  int
-	Title   string
-	Content string
+	ID             int
+	PostId         int
+	Title          string
+	Content        string
+	CreatorUsrName string
 }
 
 type Post struct {
-	ID          int
-	Title       string
-	Content     string
-	Comments    []Comment
-	CategoryStr string
-	CategoryArr []string
+	ID             int
+	Title          string
+	Content        string
+	Comments       []Comment
+	CategoryStr    string
+	CategoryArr    []string
+	CreatorUsrName string
 }
