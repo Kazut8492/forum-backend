@@ -33,7 +33,7 @@ func NewCommentHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session")
 	receivedUUID := cookie.Value
 	matchedUsername := getUsernameFromUUID(w, receivedUUID)
-	if err != nil || receivedUUID != matchedUsername {
+	if err != nil || matchedUsername == "" {
 		fmt.Println("ERROR: Log-in needed to create a comment")
 		http.Redirect(w, r, "/post?id="+postIDstr, http.StatusFound)
 		return

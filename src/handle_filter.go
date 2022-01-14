@@ -57,7 +57,7 @@ func FilterHandler(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("session")
 		receivedUUID := cookie.Value
 		matchedUsername := getUsernameFromUUID(w, receivedUUID)
-		if err != nil || receivedUUID != matchedUsername {
+		if err != nil || matchedUsername == "" {
 			fmt.Println("ERROR: Log-in needed to create a post")
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
