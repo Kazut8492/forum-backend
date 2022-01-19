@@ -16,15 +16,13 @@ func InsertPost(db *sql.DB, post Post) {
 			title,
 			content,
 			category_str,
-			creator_username,
-			like,
-			dislike
-		) VALUES (?, ?, ?, ?, ?, ?)
+			creator_username
+		) VALUES (?, ?, ?, ?)
 	`)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	defer statement.Close()
 	// number of variables have to be matched with INSERTed variables
-	statement.Exec(post.Title, post.Content, categoryStr, post.CreatorUsrName, post.Like, post.DisLike)
+	statement.Exec(post.Title, post.Content, categoryStr, post.CreatorUsrName)
 }

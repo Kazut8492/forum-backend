@@ -12,15 +12,13 @@ func InsertComment(db *sql.DB, comment Comment) {
 			post_id,
 			title,
 			content,
-			creator_username,
-			like,
-			dislike
-		) VALUES (?, ?, ?, ?, ?, ?)
+			creator_username
+		) VALUES (?, ?, ?, ?)
 	`)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	defer statement.Close()
 	// number of variables have to be matched with INSERTed variables
-	statement.Exec(comment.PostId, comment.Title, comment.Content, comment.CreatorUsrName, comment.Like, comment.DisLike)
+	statement.Exec(comment.PostId, comment.Title, comment.Content, comment.CreatorUsrName)
 }

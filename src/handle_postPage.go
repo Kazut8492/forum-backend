@@ -27,14 +27,48 @@ func PostPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	comments := ReadComments(db, postID)
 
+	likeRows, err := db.Query(`
+		SELECT * FROM like WHERE post_id = ?
+	`, postID)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer likeRows.Close()
+	var likes []Like
+	for likeRows.Next() {
+		var like Like
+		err = likeRows.Scan(&like.ID, &like.PostId, &like.CommentId, &like.CreatorUsrName)
+		if err != nil {
+			panic(err.Error())
+		}
+		likes = append(likes, like)
+	}
+
+	dislikeRows, err := db.Query(`
+		SELECT * FROM dislike WHERE post_id = ?
+	`, postID)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer dislikeRows.Close()
+	var dislikes []Dislike
+	for dislikeRows.Next() {
+		var dislike Dislike
+		err = dislikeRows.Scan(&dislike.ID, &dislike.PostId, &dislike.CommentId, &dislike.CreatorUsrName)
+		if err != nil {
+			panic(err.Error())
+		}
+		dislikes = append(dislikes, dislike)
+	}
+
 	certainPost := Post{
 		ID:          posts[postID-1].ID,
 		Title:       posts[postID-1].Title,
 		Content:     posts[postID-1].Content,
 		CategoryArr: posts[postID-1].CategoryArr,
-		Like:        posts[postID-1].Like,
-		DisLike:     posts[postID-1].DisLike,
 		Comments:    comments,
+		Likes:       likes,
+		Dislikes:    dislikes,
 	}
 
 	if r.URL.Path != "/post" {

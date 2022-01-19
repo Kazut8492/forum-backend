@@ -30,7 +30,7 @@ func LikePostHandler(w http.ResponseWriter, r *http.Request) {
 	receivedUUID := cookie.Value
 	matchedUsername := getUsernameFromUUID(w, receivedUUID)
 	if err != nil || matchedUsername == "" {
-		fmt.Println("ERROR: Log-in needed to create a post")
+		fmt.Println("ERROR: Log-in needed to react to a post")
 		switch {
 		case fromPage == "index":
 			http.Redirect(w, r, "/", http.StatusFound)
@@ -40,7 +40,19 @@ func LikePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db.Exec("UPDATE post SET like = like + 1 WHERE post_id = ?", postID)
+	// Insert like
+	statement, err := db.Prepare(`
+		INSERT INTO like (
+			post_id,
+			creator_username
+		) VALUES (?, ?)
+	`)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer statement.Close()
+	// number of variables have to be matched with INSERTed variables
+	statement.Exec(postID, matchedUsername)
 
 	switch {
 	case fromPage == "index":

@@ -2,28 +2,74 @@ package src
 
 import (
 	"database/sql"
+	"log"
 	"strings"
 )
 
 func ReadPosts(db *sql.DB) []Post {
-	db_readPosts := `
+
+	postRows, err := db.Query(`
 		SELECT * FROM post
 		ORDER BY post_id
-	`
-
-	rows, err := db.Query(db_readPosts)
+	`)
 	if err != nil {
 		panic(err.Error())
 	}
-	defer rows.Close()
+	defer postRows.Close()
 
 	var result []Post
-	for rows.Next() {
+	for postRows.Next() {
 		post := Post{}
-		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.CategoryStr, &post.CreatorUsrName, &post.Like, &post.DisLike)
+		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.CategoryStr, &post.CreatorUsrName)
 		if err != nil {
 			panic(err.Error())
 		}
+
+		// way to get like count without extracting rows
+		// var likeCount int
+		// err := db.QueryRow("SELECT * FROM like WHERE post_id = ?", post.ID).Scan(&likeCount)
+		// if err != nil {
+		// 	log.Fatal(err.Error())
+		// }
+		// defer db.Close()
+
+		likeRows, err := db.Query(`
+			SELECT * FROM like WHERE post_id = ?
+		`, post.ID)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		defer likeRows.Close()
+		var likes []Like
+		for likeRows.Next() {
+			var like Like
+			err = likeRows.Scan(&like.ID, &like.PostId, &like.CommentId, &like.CreatorUsrName)
+			if err != nil {
+				panic(err.Error())
+			}
+			likes = append(likes, like)
+		}
+
+		dislikeRows, err := db.Query(`
+			SELECT * FROM dislike WHERE post_id = ?
+		`, post.ID)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		defer dislikeRows.Close()
+		var dislikes []Dislike
+		for dislikeRows.Next() {
+			var dislike Dislike
+			err = dislikeRows.Scan(&dislike.ID, &dislike.PostId, &dislike.CommentId, &dislike.CreatorUsrName)
+			if err != nil {
+				panic(err.Error())
+			}
+			dislikes = append(dislikes, dislike)
+		}
+
+		post.Likes = likes
+		post.Dislikes = dislikes
+
 		result = append(result, post)
 	}
 	for index, post := range result {

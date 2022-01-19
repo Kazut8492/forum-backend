@@ -13,8 +13,6 @@ func CreateTables(db *sql.DB) {
 			"content"			TEXT NOT NULL,
 			"category_str"		TEXT NOT NULL,
 			"creator_username"	TEXT NOT NULL,
-			"like"				INTEGER NOT NULL,
-			"dislike"			INTEGER NOT NULL,
 			PRIMARY KEY("post_id" AUTOINCREMENT),
 			FOREIGN KEY("creator_username") REFERENCES "USER"("username")
 		)`,
@@ -25,8 +23,6 @@ func CreateTables(db *sql.DB) {
 			"title"				TEXT NOT NULL,
 			"content"			TEXT NOT NULL,
 			"creator_username"	TEXT NOT NULL,
-			"like"				INTEGER NOT NULL,
-			"dislike"			INTEGER NOT NULL,
 			PRIMARY KEY("comment_id" AUTOINCREMENT),
 			FOREIGN KEY("post_id") REFERENCES "POST"("post_id"),
 			FOREIGN KEY("creator_username") REFERENCES "USER"("username")
@@ -47,6 +43,28 @@ func CreateTables(db *sql.DB) {
 			"uuid"			TEXT NOT NULL,
 			PRIMARY KEY("session_id" AUTOINCREMENT),
 			FOREIGN KEY("username") REFERENCES "USER"("username")
+		)`,
+
+		`CREATE TABLE IF NOT EXISTS like (
+			"like_id"			INTEGER NOT NULL UNIQUE,
+			"post_id"			INTEGER NOT NULL,
+			"comment_id"		INTEGER DEFAULT '0',
+			"creator_username"	TEXT NOT NULL,
+			PRIMARY KEY("like_id" AUTOINCREMENT),
+			FOREIGN KEY("creator_username") REFERENCES "USER"("username"),
+			FOREIGN KEY("post_id") REFERENCES "POST"("post_id"),
+			FOREIGN KEY("comment_id") REFERENCES "COMMENT"("comment_id")
+		)`,
+
+		`CREATE TABLE IF NOT EXISTS dislike (
+			"dislike_id"		INTEGER NOT NULL UNIQUE,
+			"post_id"			INTEGER NOT NULL,
+			"comment_id"		INTEGER DEFAULT '0',
+			"creator_username"	TEXT NOT NULL,
+			PRIMARY KEY("dislike_id" AUTOINCREMENT),
+			FOREIGN KEY("creator_username") REFERENCES "USER"("username"),
+			FOREIGN KEY("post_id") REFERENCES "POST"("post_id"),
+			FOREIGN KEY("comment_id") REFERENCES "COMMENT"("comment_id")
 		)`,
 	}
 	for _, table := range dbTables {

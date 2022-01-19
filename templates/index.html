@@ -57,13 +57,13 @@
             <input type="text" name="id" value={{.ID}} style="display: none;">
             <button>Check detail of this post</button>
           </form>
-          <p>Like: {{.Like}}</p>
+          <p>Like: {{len .Likes}}</p>
           <form action="/like-post" method="POST">
             <input type="text" name="from" value="index" style="display: none;">
             <input type="text" name="id" value={{.ID}} style="display: none;">
             <button>Like post</button>
           </form>
-          <p>Dislike: {{.DisLike}}</p>
+          <p>Dislike: {{len .Dislikes}}</p>
           <form action="/dislike-post" method="POST">
             <input type="text" name="from" value="index" style="display: none;">
             <input type="text" name="id" value={{.ID}} style="display: none;">

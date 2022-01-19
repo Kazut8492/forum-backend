@@ -35,6 +35,21 @@ func DisLikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Insert dislike
+	statement, err := db.Prepare(`
+		INSERT INTO dislike (
+			post_id,
+			comment_id,
+			creator_username
+		) VALUES (?, ?, ?)
+	`)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer statement.Close()
+	// number of variables have to be matched with INSERTed variables
+	statement.Exec(postID, commentID, matchedUsername)
+
 	db.Exec("UPDATE comment SET dislike = dislike + 1 WHERE post_id = ? AND comment_id = ?", postID, commentID)
 
 	http.Redirect(w, r, "/post?id="+postID, http.StatusFound)

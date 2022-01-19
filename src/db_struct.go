@@ -20,8 +20,8 @@ type Comment struct {
 	Title          string
 	Content        string
 	CreatorUsrName string
-	Like           int
-	DisLike        int
+	Likes          []Like
+	Dislikes       []Dislike
 }
 
 type Post struct {
@@ -32,6 +32,20 @@ type Post struct {
 	CategoryStr    string
 	CategoryArr    []string
 	CreatorUsrName string
-	Like           int
-	DisLike        int
+	Likes          []Like
+	Dislikes       []Dislike
+}
+
+type Like struct {
+	ID             int
+	PostId         int
+	CommentId      int
+	CreatorUsrName string
+}
+
+type Dislike struct {
+	ID             int
+	PostId         int
+	CommentId      int
+	CreatorUsrName string
 }

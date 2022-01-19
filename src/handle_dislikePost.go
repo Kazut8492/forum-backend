@@ -30,7 +30,7 @@ func DisLikePostHandler(w http.ResponseWriter, r *http.Request) {
 	receivedUUID := cookie.Value
 	matchedUsername := getUsernameFromUUID(w, receivedUUID)
 	if err != nil || matchedUsername == "" {
-		fmt.Println("ERROR: Log-in needed to create a post")
+		fmt.Println("ERROR: Log-in needed to react to a post")
 		switch {
 		case fromPage == "index":
 			http.Redirect(w, r, "/", http.StatusFound)
@@ -39,6 +39,20 @@ func DisLikePostHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	// Insert dislike
+	statement, err := db.Prepare(`
+		INSERT INTO dislike (
+			post_id,
+			creator_username
+		) VALUES (?, ?)
+	`)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer statement.Close()
+	// number of variables have to be matched with INSERTed variables
+	statement.Exec(postID, matchedUsername)
 
 	db.Exec("UPDATE post SET dislike = dislike + 1 WHERE post_id = ?", postID)
 
