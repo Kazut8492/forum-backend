@@ -17,7 +17,9 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := r.Cookie("session")
 	if err != nil {
-		fmt.Println("ERRPR: Failed to get cookie info")
+		fmt.Println("ERROR: Failed to get cookie info")
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
 	}
 
 	db.Exec("DELETE FROM session WHERE uuid = ?", cookie.Value)
