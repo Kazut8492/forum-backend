@@ -25,14 +25,7 @@ func ReadPosts(db *sql.DB) []Post {
 			panic(err.Error())
 		}
 
-		// way to get like count without extracting rows
-		// var likeCount int
-		// err := db.QueryRow("SELECT * FROM like WHERE post_id = ?", post.ID).Scan(&likeCount)
-		// if err != nil {
-		// 	log.Fatal(err.Error())
-		// }
-		// defer db.Close()
-
+		// Read likes
 		likeRows, err := db.Query(`
 			SELECT * FROM like WHERE post_id = ?
 		`, post.ID)
@@ -50,6 +43,7 @@ func ReadPosts(db *sql.DB) []Post {
 			likes = append(likes, like)
 		}
 
+		// Read dislikes
 		dislikeRows, err := db.Query(`
 			SELECT * FROM dislike WHERE post_id = ?
 		`, post.ID)
@@ -67,8 +61,12 @@ func ReadPosts(db *sql.DB) []Post {
 			dislikes = append(dislikes, dislike)
 		}
 
+		// Read comments
+		comments := ReadComments(db, post.ID)
+
 		post.Likes = likes
 		post.Dislikes = dislikes
+		post.Comments = comments
 
 		result = append(result, post)
 	}
