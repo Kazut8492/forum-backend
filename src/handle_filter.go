@@ -67,6 +67,40 @@ func FilterHandler(w http.ResponseWriter, r *http.Request) {
 				filteredPosts = append(filteredPosts, fullPosts[index])
 			}
 		}
+	case appliedFilter == "liked":
+		// Check if the user is logged-in. If cookie is empty, redirect to the index page.
+		cookie, err := r.Cookie("session")
+		receivedUUID := cookie.Value
+		matchedUsername := getUsernameFromUUID(w, receivedUUID)
+		if err != nil || matchedUsername == "" {
+			fmt.Println("ERROR: Log-in needed to filter posts")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+		rows, err := db.Query(`
+			SELECT post_id FROM like WHERE creator_username = ?
+		`, matchedUsername)
+		if err != nil {
+			panic(err.Error())
+		}
+		defer rows.Close()
+		likedPostIDs := []int{}
+		for rows.Next() {
+			var postID int
+			err = rows.Scan(&postID)
+			if err != nil {
+				panic(err)
+			}
+			likedPostIDs = append(likedPostIDs, postID)
+		}
+		for index, post := range fullPosts {
+			for _, likedPostID := range likedPostIDs {
+				if post.ID == likedPostID {
+					filteredPosts = append(filteredPosts, fullPosts[index])
+					break
+				}
+			}
+		}
 	default:
 		filteredPosts = fullPosts
 	}
