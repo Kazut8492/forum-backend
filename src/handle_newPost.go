@@ -21,10 +21,16 @@ func NewPostHandler(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	// Check if the user is logged-in. If cookie is empty, redirect to the index page.
+	// But the frontend hide this function when user not logged-in anyway.
 	cookie, err := r.Cookie("session")
+	if err != nil {
+		fmt.Println("ERROR: Log-in needed to create a post")
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
 	receivedUUID := cookie.Value
 	matchedUsername := getUsernameFromUUID(w, receivedUUID)
-	if err != nil || matchedUsername == "" {
+	if matchedUsername == "" {
 		fmt.Println("ERROR: Log-in needed to create a post")
 		http.Redirect(w, r, "/", http.StatusFound)
 		return

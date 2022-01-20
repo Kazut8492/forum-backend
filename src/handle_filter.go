@@ -55,13 +55,19 @@ func FilterHandler(w http.ResponseWriter, r *http.Request) {
 	case appliedFilter == "mine":
 		// Check if the user is logged-in. If cookie is empty, redirect to the index page.
 		cookie, err := r.Cookie("session")
-		receivedUUID := cookie.Value
-		matchedUsername := getUsernameFromUUID(w, receivedUUID)
-		if err != nil || matchedUsername == "" {
+		if err != nil {
 			fmt.Println("ERROR: Log-in needed to filter posts")
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
+		receivedUUID := cookie.Value
+		matchedUsername := getUsernameFromUUID(w, receivedUUID)
+		if matchedUsername == "" {
+			fmt.Println("ERROR: Log-in needed to filter posts")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
 		for index, post := range fullPosts {
 			if post.CreatorUsrName == matchedUsername {
 				filteredPosts = append(filteredPosts, fullPosts[index])
@@ -69,14 +75,21 @@ func FilterHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	case appliedFilter == "liked":
 		// Check if the user is logged-in. If cookie is empty, redirect to the index page.
+		// But the frontend hide this function when user not logged-in anyway.
 		cookie, err := r.Cookie("session")
-		receivedUUID := cookie.Value
-		matchedUsername := getUsernameFromUUID(w, receivedUUID)
-		if err != nil || matchedUsername == "" {
+		if err != nil {
 			fmt.Println("ERROR: Log-in needed to filter posts")
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
+		receivedUUID := cookie.Value
+		matchedUsername := getUsernameFromUUID(w, receivedUUID)
+		if matchedUsername == "" {
+			fmt.Println("ERROR: Log-in needed to filter posts")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
 		rows, err := db.Query(`
 			SELECT post_id FROM like WHERE creator_username = ?
 		`, matchedUsername)
