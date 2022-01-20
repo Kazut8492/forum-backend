@@ -39,8 +39,18 @@ func PostPageHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
 		return
 	}
+
 	if 1 <= postID && postID <= len(posts) {
-		if err := tpl.ExecuteTemplate(w, "post.html", certainPost); err != nil {
+		_, err = r.Cookie("session")
+		if err != nil {
+			if err := tpl.ExecuteTemplate(w, "post.html", certainPost); err != nil {
+				w.WriteHeader(500)
+				return
+			}
+			return
+		}
+
+		if err := tpl.ExecuteTemplate(w, "logged-post.html", certainPost); err != nil {
 			w.WriteHeader(500)
 			return
 		}

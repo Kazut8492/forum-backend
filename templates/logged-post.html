@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="templates/styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <title>Forum</title>
+  </head>
+
+  <body>
+     
+    <nav class="nav-container">
+      <ul class="nav-list">
+        <li>
+          <a href="/">Forum</a>
+        </li>
+        <li>
+          <a href="/logout">Logout</a>
+        </li>
+    </nav>
+
+  <main>
+      <div class="allposts-container">
+        <div class="post-container">
+          <h1>{{.Title}}</h1>
+          <h2>{{.Content}}</h2>
+          <h3>PostID:{{.ID}}</h3>
+          {{range .CategoryArr}}
+            <p>category: {{.}}</p>
+          
+          {{end}}
+          <hr>
+          <form action="/new-comment" method="POST" name="commentForm">
+            <p>Comment title</p>
+              <input type="text" name="commentTitle" required>
+              <p>text:</p>
+              <textarea name="commentDescription" placeholder="Enter text here..." id="commentDescription" required></textarea>
+              <input type="text" name="id" value={{.ID}} style="display: none;">
+              <input type="submit" value="Submit comment">
+          </form>
+
+          {{range .Comments}}
+          <div class="comment">
+            <h4>{{.Title}}</h4>
+            <p>{{.Content}}</p>
+            <p>CommentID:{{.ID}}</p>
+            
+            <h4>Username: {{.CreatorUsrName}}</h4>
+            <form action="/dislike-comment" method="POST" style="float:right">
+              <input type="text" name="postid" value={{.PostId}} style="display: none;">
+              <input type="text" name="commentid" value={{.ID}} style="display: none;">
+              <button>{{len .Dislikes}} 👎</button>
+            </form>
+            <form action="/like-comment" method="POST" style="float:right">
+              <input type="text" name="postid" value={{.PostId}} style="display: none;">
+              <input type="text" name="commentid" value={{.ID}} style="display: none;">
+              <button>{{len .Likes}} 👍</button>
+            </form>
+          </div>
+          <hr style="width: 100%;">
+          {{end}}
+        </div>
+    </div>
+      
+  </main>
+</body>
+  
+</html>

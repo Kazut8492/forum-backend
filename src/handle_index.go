@@ -23,7 +23,16 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	posts := ReadPosts(db)
 
-	if err := tpl.ExecuteTemplate(w, "index.html", posts); err != nil {
+	_, err = r.Cookie("session")
+	if err != nil {
+		if err := tpl.ExecuteTemplate(w, "index.html", posts); err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		return
+	}
+
+	if err := tpl.ExecuteTemplate(w, "logged-index.html", posts); err != nil {
 		w.WriteHeader(500)
 		return
 	}

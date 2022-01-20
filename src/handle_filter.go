@@ -105,7 +105,16 @@ func FilterHandler(w http.ResponseWriter, r *http.Request) {
 		filteredPosts = fullPosts
 	}
 
-	if err := tpl.ExecuteTemplate(w, "index.html", filteredPosts); err != nil {
+	_, err = r.Cookie("session")
+	if err != nil {
+		if err := tpl.ExecuteTemplate(w, "index.html", filteredPosts); err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		return
+	}
+
+	if err := tpl.ExecuteTemplate(w, "logged-index.html", filteredPosts); err != nil {
 		w.WriteHeader(500)
 		return
 	}

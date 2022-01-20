@@ -23,9 +23,6 @@
         <li>
           <a href="/login">Login</a>
         </li>
-        <li>
-          <a href="/logout">Logout</a>
-        </li>
     </nav>
 
   <main>
@@ -45,49 +42,29 @@
     </form>
     </div>
       <div class="allposts-container">
+        {{range .}}
         <div class="post-container">
-  <h1>Create a new post</h1>
-  <form action="/new-post" method="POST" name="newPostForm">
-      <p>Title:</p>
-      <input type="text" name="postTitle"  required>
-      <p>Text:</p>
-      <textarea type="text" name="postContent" placeholder="Enter text here..." id="postContent" required></textarea>
-      <p>At least one category has to be selected</p>
-      <p>
-        <input type="checkbox" name="category" value="science">science
-        <input type="checkbox" name="category" value="education">education
-        <input type="checkbox" name="category" value="sports">sports
-        <input type="checkbox" name="category" value="lifehacks">lifehacks
-      </p>
-      
-      <button>Submit post</button>
-  </form>
-  
-</div>
-
-{{range .}}
-<div class="post-container">
-    <p class="title-text">{{.Title}}</p>
-    {{range .CategoryArr}}
-    <p class="category-text">{{.}}</p>
-    {{end}}
-    <hr style="width: 100%;">
-    <p class="post-text">{{.Content}}</p>
-    <form action="/post" method="GET" style="float:left">
-      <input type="text" name="id" value={{.ID}} style="display: none;">
-      <button >Check detail of this post</button>
-    </form>
-    <form action="/dislike-post" method="POST" style="float:right">
-      <input type="text" name="from" value="index" style="display: none;">
-      <input type="text" name="id" value={{.ID}} style="display: none;">
-      <button>{{len .Dislikes}} 👎</button>
-    </form>
-    <form action="/like-post" method="POST" style="float:right">
-      <input type="text" name="from" value="index" style="display: none;">
-      <input type="text" name="id" value={{.ID}} style="display: none;">
-      <button>{{len .Likes}} 👍</button>
-    </form>
-    
+            <p class="title-text">{{.Title}}</p>
+            {{range .CategoryArr}}
+            <p class="category-text">{{.}}</p>
+            {{end}}
+            <hr style="width: 100%;">
+            <p class="post-text">{{.Content}}</p>
+            <form action="/post" method="GET" style="float:left">
+              <input type="text" name="id" value={{.ID}} style="display: none;">
+              <button >Check detail of this post</button>
+            </form>
+            <form action="/dislike-post" method="POST" style="float:right">
+              <input type="text" name="from" value="index" style="display: none;">
+              <input type="text" name="id" value={{.ID}} style="display: none;">
+              <button disabled>{{len .Dislikes}} 👎</button>
+            </form>
+            <form action="/like-post" method="POST" style="float:right">
+              <input type="text" name="from" value="index" style="display: none;">
+              <input type="text" name="id" value={{.ID}} style="display: none;">
+              <button disabled>{{len .Likes}} 👍</button>
+            </form>
+            
 </div>
 {{end}}
 </div>
