@@ -23,8 +23,17 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	posts := ReadPosts(db)
 
-	_, err = r.Cookie("session")
+	cookie, err := r.Cookie("session")
 	if err != nil {
+		if err := tpl.ExecuteTemplate(w, "index.html", posts); err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		return
+	}
+	receivedUUID := cookie.Value
+	matchedUsername := getUsernameFromUUID(w, receivedUUID)
+	if matchedUsername == "" {
 		if err := tpl.ExecuteTemplate(w, "index.html", posts); err != nil {
 			w.WriteHeader(500)
 			return
