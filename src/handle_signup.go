@@ -27,6 +27,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	//Get warnings
 	warningRows, err := db.Query("SELECT warning_type FROM warning")
 	if err != nil {
+		w.WriteHeader(500)
 		log.Fatal(err.Error())
 	}
 	defer warningRows.Close()
@@ -35,6 +36,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		var warning string
 		err = warningRows.Scan(&warning)
 		if err != nil {
+			w.WriteHeader(500)
 			panic(err.Error())
 		}
 		warnings = append(warnings, warning)

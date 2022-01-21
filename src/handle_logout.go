@@ -11,6 +11,7 @@ import (
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
+		w.WriteHeader(500)
 		log.Fatal(err.Error())
 	}
 	defer db.Close()

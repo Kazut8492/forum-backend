@@ -94,6 +94,7 @@ func FilterHandler(w http.ResponseWriter, r *http.Request) {
 			SELECT post_id FROM like WHERE creator_username = ?
 		`, matchedUsername)
 		if err != nil {
+			w.WriteHeader(500)
 			panic(err.Error())
 		}
 		defer rows.Close()
@@ -102,6 +103,7 @@ func FilterHandler(w http.ResponseWriter, r *http.Request) {
 			var postID int
 			err = rows.Scan(&postID)
 			if err != nil {
+				w.WriteHeader(500)
 				panic(err)
 			}
 			likedPostIDs = append(likedPostIDs, postID)

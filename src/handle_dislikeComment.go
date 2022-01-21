@@ -47,6 +47,7 @@ func DisLikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if matchedUsernameLiked == matchedUsername {
 		_, err = db.Exec("DELETE FROM like WHERE creator_username = ? AND post_id = ? AND comment_id = ?", matchedUsername, postID, commentID)
 		if err != nil {
+			w.WriteHeader(500)
 			log.Fatal(err.Error())
 		}
 	}
@@ -57,6 +58,7 @@ func DisLikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if matchedUsernameDisliked == matchedUsername {
 		_, err = db.Exec("DELETE FROM dislike WHERE creator_username = ? AND post_id = ? AND comment_id = ?", matchedUsername, postID, commentID)
 		if err != nil {
+			w.WriteHeader(500)
 			log.Fatal(err.Error())
 		}
 	} else {
@@ -69,6 +71,7 @@ func DisLikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 			) VALUES (?, ?, ?)
 		`)
 		if err != nil {
+			w.WriteHeader(500)
 			log.Fatal(err.Error())
 		}
 		defer statement.Close()

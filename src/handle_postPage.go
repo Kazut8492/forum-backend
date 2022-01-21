@@ -13,6 +13,7 @@ func PostPageHandler(w http.ResponseWriter, r *http.Request) {
 	tpl := template.Must(template.ParseGlob("templates/*.html"))
 	db, err := sql.Open("sqlite3", "./example.db")
 	if err != nil {
+		w.WriteHeader(500)
 		log.Fatal(err.Error())
 	}
 	defer db.Close()
@@ -22,6 +23,7 @@ func PostPageHandler(w http.ResponseWriter, r *http.Request) {
 	// postIDstr := r.URL.Query().Get("id") this could work ????
 	postID, err := strconv.Atoi(postIDstr)
 	if err != nil {
+		w.WriteHeader(500)
 		log.Fatal(err.Error())
 	}
 

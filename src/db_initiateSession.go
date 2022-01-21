@@ -27,6 +27,7 @@ func InitiateSession(w http.ResponseWriter, r *http.Request, db *sql.DB, user Us
 
 	statement, err := db.Prepare("INSERT INTO session (username ,uuid) VALUES (?, ?)")
 	if err != nil {
+		w.WriteHeader(500)
 		fmt.Println(err.Error())
 		fmt.Println("ERROR: Failed to insert session")
 		log.Fatal(1)

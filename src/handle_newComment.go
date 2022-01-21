@@ -26,6 +26,7 @@ func NewCommentHandler(w http.ResponseWriter, r *http.Request) {
 	postID, err := strconv.Atoi(postIDstr)
 	// fmt.Println(postID)
 	if err != nil {
+		w.WriteHeader(500)
 		log.Fatal(err.Error())
 	}
 

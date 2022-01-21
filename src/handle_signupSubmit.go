@@ -51,6 +51,7 @@ func SignupSubmitHandler(w http.ResponseWriter, r *http.Request) {
 				) VALUES (?)
 			`)
 			if err != nil {
+				w.WriteHeader(500)
 				log.Fatal(err.Error())
 			}
 			defer statement.Close()
@@ -63,6 +64,7 @@ func SignupSubmitHandler(w http.ResponseWriter, r *http.Request) {
 				) VALUES (?)
 			`)
 			if err != nil {
+				w.WriteHeader(500)
 				log.Fatal(err.Error())
 			}
 			defer statement.Close()
