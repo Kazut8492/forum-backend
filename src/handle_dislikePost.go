@@ -26,10 +26,21 @@ func DisLikePostHandler(w http.ResponseWriter, r *http.Request) {
 	postID := r.FormValue("id")
 
 	// Check if the user is logged-in. If cookie is empty, redirect to the index page.
+	// But the frontend hide this function when user not logged-in anyway.
 	cookie, err := r.Cookie("session")
+	if err != nil {
+		fmt.Println("ERROR: Log-in needed to react to a post")
+		switch {
+		case fromPage == "index":
+			http.Redirect(w, r, "/", http.StatusFound)
+		case fromPage == "post":
+			http.Redirect(w, r, "/post?id="+postID, http.StatusFound)
+		}
+		return
+	}
 	receivedUUID := cookie.Value
 	matchedUsername := getUsernameFromUUID(w, receivedUUID)
-	if err != nil || matchedUsername == "" {
+	if matchedUsername == "" {
 		fmt.Println("ERROR: Log-in needed to react to a post")
 		switch {
 		case fromPage == "index":

@@ -23,9 +23,6 @@
         <li>
           <a href="/login">Login</a>
         </li>
-        <li>
-          <a href="/logout">Logout</a>
-        </li>
     </nav>
 
   <main>
@@ -39,14 +36,6 @@
           
           {{end}}
           <hr>
-          <form action="/new-comment" method="POST" name="commentForm">
-            <p>title</p>
-              <input type="text" name="commentTitle" required>
-              <p>text:</p>
-              <textarea name="commentDescription" form="commentForm" placeholder="Enter text here..." id="commentDescription" required></textarea>
-              <input type="text" name="id" value={{.ID}} style="display: none;">
-              <input type="submit" value="Submit comment">
-          </form>
 
           {{range .Comments}}
           <div class="comment">
@@ -58,12 +47,12 @@
             <form action="/dislike-comment" method="POST" style="float:right">
               <input type="text" name="postid" value={{.PostId}} style="display: none;">
               <input type="text" name="commentid" value={{.ID}} style="display: none;">
-              <button>{{len .Dislikes}} 👎</button>
+              <button disabled>{{len .Dislikes}} 👎</button>
             </form>
             <form action="/like-comment" method="POST" style="float:right">
               <input type="text" name="postid" value={{.PostId}} style="display: none;">
               <input type="text" name="commentid" value={{.ID}} style="display: none;">
-              <button>{{len .Likes}} 👍</button>
+              <button disabled>{{len .Likes}} 👍</button>
             </form>
           </div>
           <hr style="width: 100%;">
@@ -75,13 +64,3 @@
 </body>
   
 </html>
-
-<!-- <form action="/dislike-post" method="POST" style="float:right">
-      <input type="text" name="from" value="index" style="display: none;">
-      <input type="text" name="id" value={{.ID}} style="display: none;">
-      <button>{{len .Dislikes}} 👎</button>
-    </form>
-    <form action="/like-post" method="POST" style="float:right">
-      <input type="text" name="from" value="index" style="display: none;">
-      <input type="text" name="id" value={{.ID}} style="display: none;">
-      <button>{{len .Likes}} 👍</button>-->

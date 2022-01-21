@@ -147,6 +147,10 @@ p.category-text{
     overflow: hidden;
 }
 
+button:disabled{
+    background-color: rgb(230, 218, 218);
+}
+
 .nav-list li {
     height: 100%;
     margin-right: 16px;
