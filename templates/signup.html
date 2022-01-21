@@ -32,8 +32,18 @@
           <form action="/signup-submit" method="POST">
               <p>Username</p>
               <input type="text" name="username" placeholder="username" required>
+              {{range .}}
+                {{if eq . "Signup_Failed_Username_Taken"}}
+                  <h6>Signup failed, username already taken</h6>
+                {{end}}
+              {{end}}
               <p>Email</p>
               <input type="email" name="email" placeholder="email" required>
+              {{range .}}
+                {{if eq . "Signup_Failed_Email_Taken"}}
+                  <h6>Signup failed, Email already taken</h6>
+                {{end}}
+              {{end}}
               <p>Password</p>
               <input type="password" name="password" placeholder="password" required>
               <hr style="visibility: hidden;">

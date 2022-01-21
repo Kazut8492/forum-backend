@@ -23,6 +23,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
+	//Get warnings
 	warningRows, err := db.Query("SELECT warning_type FROM warning")
 	if err != nil {
 		log.Fatal(err.Error())

@@ -43,8 +43,32 @@ func SignupSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	db.QueryRow("SELECT user_email FROM user WHERE user_email = ?", email).Scan(&matchedEmail)
 	db.QueryRow("SELECT username FROM user WHERE username = ?", username).Scan(&matchedUsername)
 	if email == matchedEmail || username == matchedUsername {
-		//WORK IN PROGRESS
-		fmt.Println("ERROR: Same email or username found in the database")
+		if email == matchedEmail {
+			//Set Warning
+			statement, err := db.Prepare(`
+				INSERT INTO warning (
+					warning_type
+				) VALUES (?)
+			`)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			defer statement.Close()
+			statement.Exec("Signup_Failed_Email_Taken")
+		}
+		if username == matchedUsername {
+			statement, err := db.Prepare(`
+				INSERT INTO warning (
+					warning_type
+				) VALUES (?)
+			`)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			defer statement.Close()
+			statement.Exec("Signup_Failed_Username_Taken")
+		}
+		// fmt.Println("ERROR: Same email or username found in the database")
 		http.Redirect(w, r, "/signup", http.StatusFound)
 	} else {
 		user := User{}
