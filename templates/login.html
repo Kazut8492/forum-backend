@@ -33,8 +33,18 @@
         <form action="/login-submit" method="POST">
             <p>Username</p>
             <input type="text" name="username" placeholder="username" required>
+            {{range .}}
+              {{if eq . "Login_Failed_Wrong_Username"}}
+                <h6>Login failed, username not found in the database</h6>
+              {{end}}
+            {{end}}
             <p>Password</p>
             <input type="password" name="password" placeholder="password" required>
+            {{range .}}
+              {{if eq . "Login_Failed_Wrong_Password"}}
+                <h6>Login failed, password not matched</h6>
+              {{end}}
+            {{end}}
             <hr style="visibility: hidden;">
             <button>Log in</button>
         </form>

@@ -33,10 +33,20 @@ func LoginSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	var matchedUsername string
 	db.QueryRow("SELECT username FROM user WHERE username = ?", username).Scan(&matchedUsername)
 	if matchedUsername == "" {
-		//WORK IN PROGRESS
-		fmt.Println("ERROR: log in failed, username not found in the database")
+		//Set Warning
+		statement, err := db.Prepare(`
+			INSERT INTO warning (
+				warning_type
+			) VALUES (?)
+		`)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		defer statement.Close()
+		statement.Exec("Login_Failed_Wrong_Username")
+		// fmt.Println("ERROR: log in failed, username not found in the database")
 		http.Redirect(w, r, "/login", http.StatusFound)
-		// return
+		return
 	} else {
 		statement, err := db.Query("SELECT * FROM user WHERE username = ?", username)
 		if err != nil {
@@ -56,13 +66,25 @@ func LoginSubmitHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if err := CompareHashAndPassword(user.Pass, password); err != nil {
-			//WORK IN PROGRESS
-			fmt.Println("ERROR: log in failed, password not matched")
+			//Set Warning
+			statement, err := db.Prepare(`
+				INSERT INTO warning (
+					warning_type
+				) VALUES (?)
+			`)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			defer statement.Close()
+			statement.Exec("Login_Failed_Wrong_Password")
+			// fmt.Println("ERROR: login failed, password not matched")
 			http.Redirect(w, r, "/login", http.StatusFound)
+			return
 		} else {
 			fmt.Println("log in successed")
 			InitiateSession(w, r, db, user)
 			http.Redirect(w, r, "/", http.StatusFound)
+			return
 		}
 	}
 }

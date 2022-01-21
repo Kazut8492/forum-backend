@@ -66,6 +66,12 @@ func CreateTables(db *sql.DB) {
 			FOREIGN KEY("post_id") REFERENCES "POST"("post_id"),
 			FOREIGN KEY("comment_id") REFERENCES "COMMENT"("comment_id")
 		)`,
+
+		`CREATE TABLE IF NOT EXISTS warning (
+			"warning_id"		INTEGER NOT NULL UNIQUE,
+			"warning_type"		TEXT NOT NULL UNIQUE,
+			PRIMARY KEY("warning_id" AUTOINCREMENT)
+		)`,
 	}
 	for _, table := range dbTables {
 		statement, err := db.Prepare(table)
