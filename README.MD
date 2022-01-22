@@ -1,4 +1,4 @@
-## How to use (For Dockerize Task)
+## How to use
 1. Install Docker to your pc
 2. Within command line window, nagivate to the project folder
 3. Run `bash dockerbuild.sh` and go to `localhost:8888`.
